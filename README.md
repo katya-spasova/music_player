@@ -50,27 +50,19 @@ And of course you can write your own client for any platform you like.
     
 ## What's the web service API?
 
-**GET host:8765/** - checks if the service is alive
-
-**PUT host:8765/play/<filename/directory/playlist>** - plays music from file, directory or playlist
-
-**POST host:8765/pause** - pauses the playback
-
-**POST host:8765/resume** - resumes the playback
-
-**PUT host:8765/stop** - stops the playback (cannot be resumed)
-
-**POST host:8765/next** - plays the next song
-
-**POST host:8765/previous** - plays the previous song
-
-**PUT host:8765/songinfo** - returns info about the current song
-
-**POST host:8765/add/<filename/directory/playlist>** - add music to the play queue from file, directory, playlist
-
-**PUT host:8765/save/<playlist>** - saves the play queue to a playlist
-
-**GET host :8765/playlists** - returns a list of all saved playlists
+| PATH | Description|
+| --- | --- |
+| GET host:8765/ | checks if the service is alive|
+| PUT host:8765/play/<filename/directory/playlist> | plays music from file, directory or playlist |
+| POST host:8765/pause | pauses the playback |
+| POST host:8765/resume | resumes the playback |
+| PUT host:8765/stop | stops the playback (cannot be resumed) |
+| POST host:8765/next | plays the next song |
+| POST host:8765/previous | plays the previous song |
+| PUT host:8765/songinfo | returns info about the current song |
+| POST host:8765/add/<filename/directory/playlist> | add music to the play queue from file, directory, playlist |
+| PUT host:8765/save/<playlist> | saves the play queue to a playlist |
+| GET host :8765/playlists | returns a list of all saved playlists |
 
     //todo: describe the response json and the error codes
     
