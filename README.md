@@ -25,15 +25,15 @@ So you should install it first.
 
   The easiest way is to use Homebrew (http://brew.sh/)
 
-  ** brew install sox**
+  **brew install sox**
    
 To get this project execute:
 
-  ** go get github.com/katya-spasova/music_player **
+  **go get github.com/katya-spasova/music_player**
     
 And run it from music_player/player directory execute:
 
-  ** go run service.go player.go
+  **go run service.go player.go**
     
 ## What are the supported music formats?
 
