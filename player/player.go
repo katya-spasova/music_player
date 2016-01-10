@@ -49,7 +49,10 @@ func (player *Player) playSingleFile(filename string) {
 		if out == nil {
 			out = sox.OpenWrite("default", in.Signal(), nil, "coreaudio")
 			if out == nil {
-				log.Fatal("Failed to open output device")
+				out = sox.OpenWrite("default", in.Signal(), nil, "waveaudio")
+				if out == nil {
+					log.Fatal("Failed to open output device")
+				}
 			}
 		}
 	}
