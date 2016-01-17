@@ -21,7 +21,7 @@ type InOut struct {
 // Starts sox and the initialises player's state
 func (player *Player) init() error {
 	if !sox.Init() {
-		return errors.New("Failed to initialize SoX")
+		return errors.New(no_sox_msg)
 	}
 	player.InOut = new(InOut)
 	return nil
@@ -51,7 +51,7 @@ func (player *Player) playSingleFile(filename string) error {
 		if player.WG != nil {
 			player.WG.Done()
 		}
-		return errors.New("SoX failed to open input file")
+		return errors.New(no_sox_in_msg)
 	}
 	player.InOut.In = in
 
@@ -72,7 +72,7 @@ func (player *Player) playSingleFile(filename string) error {
 					if player.WG != nil {
 						player.WG.Done()
 					}
-					return errors.New("Sox failed to open output device")
+					return errors.New(no_sox_out_msg)
 				}
 			}
 		}

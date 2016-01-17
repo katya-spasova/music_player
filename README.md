@@ -64,8 +64,27 @@ And of course you can write your own client for any platform you like.
 | PUT host:8765/save/<playlist> | saves the play queue to a playlist |
 | GET host:8765/playlists | returns a list of all saved playlists |
 
-    //todo: describe the response json and the error codes
+    //todo: describe the response json
     
+### Returned Codes
+
+| Code | Message |
+| --- | --- |
+| 0 | Success |
+| 1 | Failed to initialize SoX |
+| 2 | SoX failed to open input file |
+| 3 | Sox failed to open output device |
+| 4 | File cannot be found |
+| 5 | Playlist cannot be found |
+| 6 | Currently there are no saved playlists |
+| 7 | Format is not supported |
+| 8 | Cannot pause. No song is playing |
+| 9 | Cannot resume. No song was paused |
+| 10 | Cannot play next song. No next song in queue |
+| 11 | Cannot play previous song. No previous song in queue |
+| 12 | There is no current song in the queue |
+| 13 | Cannot save playlist |
+| 14 | Queue is empty and cannot be saved as playlist |
 
 ## Why would I use music_player?
 
