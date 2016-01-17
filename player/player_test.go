@@ -6,6 +6,15 @@ import (
 	"time"
 )
 
+func TestInit(t *testing.T) {
+	player = Player{}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	player.clear()
+}
+
 func TestPlaySingleFile(t *testing.T) {
 	wg := sync.WaitGroup{}
 	player = Player{WG: &wg}
