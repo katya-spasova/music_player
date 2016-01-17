@@ -37,7 +37,7 @@ And run it from music_player/player directory execute:
     
 ## What are the supported music formats?
 
-music_player supports what SoX supports. run **sox -h** and check **AUDIO FILE FORMATS** section
+music_player supports mp3 so far. Others may be added in the future.
     
 ## How do I use music_player?
 
@@ -62,7 +62,7 @@ And of course you can write your own client for any platform you like.
 | PUT host:8765/songinfo | returns info about the current song |
 | POST host:8765/add/<filename/directory/playlist> | add music to the play queue from file, directory, playlist |
 | PUT host:8765/save/<playlist> | saves the play queue to a playlist |
-| GET host :8765/playlists | returns a list of all saved playlists |
+| GET host:8765/playlists | returns a list of all saved playlists |
 
     //todo: describe the response json and the error codes
     
