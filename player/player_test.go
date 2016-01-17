@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"sync"
 	"testing"
 	"time"
@@ -20,8 +19,8 @@ func TestPlaySingleFile(t *testing.T) {
 	wg.Wait()
 	duration := time.Since(start)
 	if duration.Seconds() < 1 {
-		fmt.Println("played file for ", duration.Seconds())
-		t.Errorf("Could not play the sample file")
+		t.Errorf("Expected to play for at least\n---\n%d\n---\nbut played\n---\n%f\n---\n", 1,
+			duration.Seconds())
 	}
 	player.clear()
 }
