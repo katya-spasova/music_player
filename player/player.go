@@ -1,10 +1,14 @@
 package main
 
 import "github.com/krig/go-sox"
-import "log"
+import (
+	"errors"
+	"sync"
+)
 
 type Player struct {
-	//todo: add queue, timer, io state etc.
+	WG    *sync.WaitGroup
+	InOut *InOut
 }
 
 // InOut struct holds the state of the player
@@ -15,27 +19,41 @@ type InOut struct {
 }
 
 // Starts sox and the initialises player's state
-func (player *Player) init() {
+func (player *Player) init() error {
 	if !sox.Init() {
-		log.Fatal("Failed to initialize SoX")
+		return errors.New("Failed to initialize SoX")
 	}
-	//todo: init the state
+	player.InOut = new(InOut)
+	return nil
 }
 
-// Stops sox
+// Clears resources
 func (player *Player) clear() {
 	sox.Quit()
+	if player.InOut.In != nil {
+		player.InOut.In.Release()
+	}
+
+	if player.InOut.Out != nil {
+		player.InOut.Out.Release()
+	}
+
+	if player.InOut.Chain != nil {
+		player.InOut.Chain.Release()
+	}
 }
 
 // Plays single file
-func (player *Player) playSingleFile(filename string) {
+func (player *Player) playSingleFile(filename string) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
-		log.Fatal("Failed to open input file")
+		if player.WG != nil {
+			player.WG.Done()
+		}
+		return errors.New("SoX failed to open input file")
 	}
-	// Close the file before exiting
-	defer in.Release()
+	player.InOut.In = in
 
 	// Open the output device: Specify the output signal characteristics.
 	// Since we are using only simple effects, they are the same as the
@@ -51,19 +69,20 @@ func (player *Player) playSingleFile(filename string) {
 			if out == nil {
 				out = sox.OpenWrite("default", in.Signal(), nil, "waveaudio")
 				if out == nil {
-					log.Fatal("Failed to open output device")
+					if player.WG != nil {
+						player.WG.Done()
+					}
+					return errors.New("Sox failed to open output device")
 				}
 			}
 		}
 	}
-	// Close the output device before exiting
-	defer out.Release()
+	player.InOut.Out = out
 
 	// Create an effects chain: Some effects need to know about the
 	// input or output encoding so we provide that information here.
 	chain := sox.CreateEffectsChain(in.Encoding(), out.Encoding())
-	// Make sure to clean up!
-	defer chain.Release()
+	player.InOut.Chain = chain
 
 	//	interm_signal := in.Signal().Copy()
 
@@ -89,7 +108,26 @@ func (player *Player) playSingleFile(filename string) {
 	e.Release()
 
 	// Flow samples through the effects processing chain until EOF is reached.
-	go chain.Flow()
+	go func(wg *sync.WaitGroup) {
+		chain.Flow()
+		if wg != nil {
+			wg.Done()
+		}
+	}(player.WG)
 
-	// todo: save InOut{In: in, Out:out, Chain: chain}
+	return nil
 }
+
+//func main() {
+//	wg := sync.WaitGroup{}
+//	player = Player{WG:&wg}
+//	err := player.init()
+//	if (err != nil) {
+//		return
+//	}
+//	fmt.Println("Adding")
+//	wg.Add(1)
+//	player.playSingleFile("/Users/katyaspasova/Music/Vampolka.mp3")
+//	wg.Wait()
+//	player.clear()
+//}
