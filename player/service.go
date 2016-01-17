@@ -92,7 +92,7 @@ func listPlaylists(w http.ResponseWriter, r *http.Request) {
 
 var player Player
 
-func main() {
+func Start() {
 	// init the player
 	player = Player{}
 	player.init()
@@ -116,4 +116,8 @@ func main() {
 
 	// start the service
 	http.ListenAndServe(":8765", mux)
+}
+
+func main() {
+	Start()
 }
