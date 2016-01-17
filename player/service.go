@@ -28,8 +28,9 @@ const (
 	cannot_resume
 	cannot_next
 	cannot_previous
-	cannot_get_info
+	cannot_get_song_info
 	cannot_save_empty_queue
+	cannot_get_queue_info
 )
 
 // Messages
@@ -48,6 +49,36 @@ const cannot_previous_msg = "Cannot play previous song. No previous song in queu
 const cannot_get_info_msg = "There is no current song in the queue"
 const cannot_save_playlist_msg = "Cannot save playlist"
 const cannot_save_empty_queue_msg = "Queue is empty and cannot be saved as playlist"
+const cannot_get_queue_info_msg = "Cannot get queue info. Queue is empty"
+
+const started_playing_info = "Started playing"
+const added_to_queue_info = "Added to queue"
+const paused_song_info = "Song is paused"
+const playback_stopped_info = "Playback is stopped and cleaned"
+const current_song_info = "The filename if the current song"
+const current_queue_info = "The filenames in the current queue"
+const queue_saved_as_playlist = "The queue is saves as a playlist"
+const playlists_info = "A list of all saved playlists"
+
+// type used for error json response
+type ErrorMessageContainer struct {
+	// Error code
+	Code int
+	// Error message
+	Message string
+}
+
+// type used for success json response
+type SuccessResponseContainer struct {
+	// Always 0
+	Code int
+	// Always Success
+	Message string
+	// A short human readable message to describe what's going on
+	Info string
+	// Filename (list if filenames)
+	Data []string
+}
 
 // Shows if the service is alive
 func alive(w http.ResponseWriter, r *http.Request) {
@@ -117,7 +148,7 @@ func addToQueue(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 }
 
 // Saves the current queue as a playlist
-// The result json contains the filename if the playlist
+// The result json contains the filename of the playlist
 // or error message if queue is empty or playlist cannot be saved
 func saveAsPlaylist(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
@@ -129,6 +160,13 @@ func saveAsPlaylist(ctx context.Context, w http.ResponseWriter, r *http.Request)
 // The result json contains the filenames of the already saved playlists
 // or error message of no playlists exit
 func listPlaylists(w http.ResponseWriter, r *http.Request) {
+
+}
+
+// Displays all songs in the queue
+// The result json contains all filenames in the current queue
+// or an error message if queue is empty
+func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 
 }
 
@@ -155,6 +193,7 @@ func Start() {
 	mux.HandleFuncC(pat.Post("/add/:name"), addToQueue)
 	mux.HandleFuncC(pat.Put("/save/:name"), saveAsPlaylist)
 	mux.HandleFunc(pat.Get("/playlists"), listPlaylists)
+	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo())
 
 	// start the service
 	http.ListenAndServe(":8765", mux)

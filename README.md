@@ -63,6 +63,7 @@ And of course you can write your own client for any platform you like.
 | POST host:8765/add/<filename/directory/playlist> | add music to the play queue from file, directory, playlist |
 | PUT host:8765/save/<playlist> | saves the play queue to a playlist |
 | GET host:8765/playlists | returns a list of all saved playlists |
+| GET host:8765/queueinfo | returns list of all songs in the queue |
 
     //todo: describe the response json
     
@@ -85,6 +86,7 @@ And of course you can write your own client for any platform you like.
 | 12 | There is no current song in the queue |
 | 13 | Cannot save playlist |
 | 14 | Queue is empty and cannot be saved as playlist |
+| 15 | Cannot get queue info. Queue is empty |
 
 ## Why would I use music_player?
 
