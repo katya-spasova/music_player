@@ -193,7 +193,7 @@ func Start() {
 	mux.HandleFuncC(pat.Post("/add/:name"), addToQueue)
 	mux.HandleFuncC(pat.Put("/save/:name"), saveAsPlaylist)
 	mux.HandleFunc(pat.Get("/playlists"), listPlaylists)
-	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo())
+	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo)
 
 	// start the service
 	http.ListenAndServe(":8765", mux)
