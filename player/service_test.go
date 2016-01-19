@@ -89,3 +89,45 @@ func TestPlayBrokenFile(t *testing.T) {
 	expected := "{\"Code\":2,\"Message\":\"SoX failed to open input file\"}"
 	checkResult("PUT", url, expected, t)
 }
+
+func TestPause(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+	url := HOST + "pause"
+	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Song is paused\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+
+	checkResult("POST", url, expected, t)
+}
+
+func TestPauseNoPlayback(t *testing.T) {
+	url := HOST + "pause"
+	expected := "{\"Code\":2,\"Message\":\"Cannot pause. No song is playing\"}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestResume(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+	pause_url := HOST + "pause"
+	performCall("PUT", play_url)
+
+	url := HOST + "resume"
+	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Song is resumed\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	checkResult("POST", url, expected, t)
+
+}
+
+func TestResumeNoPlayback(t *testing.T) {
+	url := HOST + "resume"
+	expected := "{\"Code\":9,\"Message\":\"Cannot resume. No song was paused\"}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestResumeNoPaused(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+
+	url := HOST + "resume"
+	expected := "{\"Code\":9,\"Message\":\"Cannot resume. No song was paused\"}"
+	checkResult("POST", url, expected, t)
+}
