@@ -181,3 +181,29 @@ func TestNextNoPlayback(t *testing.T) {
 	expected := "{\"Code\":10,\"Message\":\"Cannot play next song. No next song in queue\"}"
 	checkResult("POST", url, expected, t)
 }
+
+func TestPrevious(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds")
+	performCall("PUT", play_url)
+	next_url := HOST + "next"
+	performCall("POST", next_url)
+
+	url := HOST + "previous"
+	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep9.mp3\"]}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestPreviousNoPrevious(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+
+	url := HOST + "previous"
+	expected := "{\"Code\":11,\"Message\":\"Cannot play previous song. No previous song in queue\"}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestPreviousNoPlayback(t *testing.T) {
+	url := HOST + "previous"
+	expected := "{\"Code\":11,\"Message\":\"Cannot play previous song. No previous song in queue\"}"
+	checkResult("POST", url, expected, t)
+}
