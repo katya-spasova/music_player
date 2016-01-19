@@ -69,7 +69,7 @@ The json response in case the operation is successful look similar to the follow
 
 ~~~json
 {
-   /* code for successs */
+   // code for successs
    "Code": 0,
    /* message for success */
    "Message": "Success",
