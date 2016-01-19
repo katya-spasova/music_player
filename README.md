@@ -30,10 +30,9 @@ So you should install it first.
 To get this project execute:
 
   **go get github.com/katya-spasova/music_player**
-    
-And run it from music_player/player directory execute:
 
-  **go run service.go player.go**
+Start the service:
+  **go run start_service.go**
     
 ## What are the supported music formats?
 
