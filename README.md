@@ -69,13 +69,9 @@ The json response in case the operation is successful look similar to the follow
 
 ~~~json
 {
-   // code for successs
    "Code": 0,
-   /* message for success */
    "Message": "Success",
-   /* human readable info about what's going on (depends on request type) */
    "Info": "Queue content",
-   /* a list of songs or playlists (depends on request type) */
    "Data": [
       "test_sounds/beep9.mp3",
       "test_sounds/beep28.mp3",
@@ -88,9 +84,7 @@ The json response in case the operation fails looks similar to:
 
 ~~~json
 {
-   /* error code */
    "Code": 11,
-   /* human readable error message */
    "Message": "Cannot play previous song. No previous song in queue"
 }
 ~~~
