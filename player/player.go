@@ -1,4 +1,4 @@
-package main
+package player
 
 import "github.com/krig/go-sox"
 import (

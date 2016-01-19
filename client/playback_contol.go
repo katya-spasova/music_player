@@ -1,4 +1,4 @@
-package main
+package client
 
 import (
 	"fmt"
@@ -6,14 +6,10 @@ import (
 	"net/http"
 )
 
-const HOST = "http://localhost:8765/"
+const host = "http://localhost:8765/"
 
-func main() {
-	getAlive()
-}
-
-func getAlive() string {
-	response, err := http.Get(HOST)
+func GetAlive() string {
+	response, err := http.Get(host)
 	if err != nil {
 		fmt.Println("The service is not alive")
 		return ""

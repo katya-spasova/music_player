@@ -1,4 +1,4 @@
-package main
+package player
 
 import (
 	"fmt"
@@ -10,7 +10,6 @@ import (
 )
 
 // Success and error codes
-
 const (
 	success = iota
 	// SoX related
@@ -62,7 +61,7 @@ const queue_saved_as_playlist = "The queue is saved as a playlist"
 const playlists_info = "A list of all saved playlists"
 const queue_info = "Queue content"
 
-// type used for error json response
+// ErrorMessageContainer - type used for error json response
 type ErrorMessageContainer struct {
 	// Error code
 	Code int
@@ -70,7 +69,7 @@ type ErrorMessageContainer struct {
 	Message string
 }
 
-// type used for success json response
+// SuccessResponseContainer - type used for success json response
 type SuccessResponseContainer struct {
 	// Always 0
 	Code int
@@ -174,6 +173,7 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 
 var player Player
 
+// Start - starts the web service
 func Start() {
 	// init the player
 	player = Player{}
@@ -199,8 +199,4 @@ func Start() {
 
 	// start the service
 	http.ListenAndServe(":8765", mux)
-}
-
-func main() {
-	Start()
 }

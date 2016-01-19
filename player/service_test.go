@@ -1,4 +1,4 @@
-package main
+package player
 
 import (
 	"io/ioutil"
@@ -62,40 +62,43 @@ func TestGetAlive(t *testing.T) {
 
 func TestPlay(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep9.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Started playing",
+	"Data":["test_sounds/beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 	clearPlayback()
 }
 
 func TestPlayDir(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("test_sounds")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep9.mp3\",\"test_sounds/beep28.mp3\",\"test_sounds/beep36.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Started playing",
+	"Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("PUT", url, expected, t)
 	clearPlayback()
 }
 
 func TestPlayPlaylist(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("sample_playlist")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep9.mp3\",\"test_sounds/beep28.mp3\",\"test_sounds/beep36.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Started playing",
+	"Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("PUT", url, expected, t)
 	clearPlayback()
 }
 
 func TestPlayNonExistingFile(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("test_sounds/beep1.mp3")
-	expected := "{\"Code\":4,\"Message\":\"File cannot be found\"}"
+	expected := `{"Code":4,"Message":"File cannot be found"}`
 	checkResult("PUT", url, expected, t)
 }
 
 func TestPlayInvalidFileFormat(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("test_broken/abc.txt")
-	expected := "{\"Code\":7,\"Message\":\"Format is not supported\"}"
+	expected := `{"Code":7,"Message":"Format is not supported"}`
 	checkResult("PUT", url, expected, t)
 }
 
 func TestPlayBrokenFile(t *testing.T) {
 	url := HOST + "play/" + url.QueryEscape("test_broken/abc.txt")
-	expected := "{\"Code\":2,\"Message\":\"SoX failed to open input file\"}"
+	expected := `{"Code":2,"Message":"SoX failed to open input file"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -103,7 +106,8 @@ func TestPause(t *testing.T) {
 	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	url := HOST + "pause"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Song is paused\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Song is paused",
+	"Data":["test_sounds/beep28.mp3"]}`
 
 	checkResult("POST", url, expected, t)
 	clearPlayback()
@@ -111,7 +115,7 @@ func TestPause(t *testing.T) {
 
 func TestPauseNoPlayback(t *testing.T) {
 	url := HOST + "pause"
-	expected := "{\"Code\":2,\"Message\":\"Cannot pause. No song is playing\"}"
+	expected := `{"Code":2,"Message":"Cannot pause. No song is playing"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -122,7 +126,8 @@ func TestResume(t *testing.T) {
 	performCall("PUT", pause_url)
 
 	url := HOST + "resume"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Song is resumed\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Song is resumed",
+	"Data":["test_sounds/beep28.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 
@@ -130,7 +135,7 @@ func TestResume(t *testing.T) {
 
 func TestResumeNoPlayback(t *testing.T) {
 	url := HOST + "resume"
-	expected := "{\"Code\":9,\"Message\":\"Cannot resume. No song was paused\"}"
+	expected := `{"Code":9,"Message":"Cannot resume. No song was paused"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -139,7 +144,7 @@ func TestResumeNoPaused(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "resume"
-	expected := "{\"Code\":9,\"Message\":\"Cannot resume. No song was paused\"}"
+	expected := `{"Code":9,"Message":"Cannot resume. No song was paused"}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
@@ -149,13 +154,13 @@ func TestStop(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "stop"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Playback is stopped and cleaned\",\"Data\":[]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Playback is stopped and cleaned","Data":[]}`
 	checkResult("PUT", url, expected, t)
 }
 
 func TestStopNoPlayback(t *testing.T) {
 	url := HOST + "stop"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Playback is stopped and cleaned\",\"Data\":[]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Playback is stopped and cleaned","Data":[]}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -166,7 +171,7 @@ func TestStopPaused(t *testing.T) {
 	performCall("PUT", pause_url)
 
 	url := HOST + "stop"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Playback is stopped and cleaned\",\"Data\":[]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Playback is stopped and cleaned","Data":[]}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -175,7 +180,8 @@ func TestNext(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "next"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Started playing",
+	"Data":["test_sounds/beep28.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
@@ -185,14 +191,14 @@ func TestNextNoNext(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "next"
-	expected := "{\"Code\":10,\"Message\":\"Cannot play next song. No next song in queue\"}"
+	expected := `{"Code":10,"Message":"Cannot play next song. No next song in queue"}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestNextNoPlayback(t *testing.T) {
 	url := HOST + "next"
-	expected := "{\"Code\":10,\"Message\":\"Cannot play next song. No next song in queue\"}"
+	expected := `{"Code":10,"Message":"Cannot play next song. No next song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -203,7 +209,8 @@ func TestPrevious(t *testing.T) {
 	performCall("POST", next_url)
 
 	url := HOST + "previous"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep9.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Started playing",
+	"Data":["test_sounds/beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
@@ -213,14 +220,14 @@ func TestPreviousNoPrevious(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "previous"
-	expected := "{\"Code\":11,\"Message\":\"Cannot play previous song. No previous song in queue\"}"
+	expected := `{"Code":11,"Message":"Cannot play previous song. No previous song in queue"}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestPreviousNoPlayback(t *testing.T) {
 	url := HOST + "previous"
-	expected := "{\"Code\":11,\"Message\":\"Cannot play previous song. No previous song in queue\"}"
+	expected := `{"Code":11,"Message":"Cannot play previous song. No previous song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -229,48 +236,52 @@ func TestGetCurrentSongInfo(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "songinfo"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"The filename of the current song\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"The filename of the current song",
+	"Data":["test_sounds/beep28.mp3"]}`
 	checkResult("GET", url, expected, t)
 	clearPlayback()
 }
 
 func TestGetCurrentSongInfoNoPlayback(t *testing.T) {
 	url := HOST + "songinfo"
-	expected := "{\"Code\":12,\"Message\":\"There is no current song in the queue\"}"
+	expected := `{"Code":12,"Message":"There is no current song in the queue"}`
 	checkResult("GET", url, expected, t)
 }
 
 func TestAdd(t *testing.T) {
 	url := HOST + "add/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Added to queue\",\"Data\":[\"test_sounds/beep9.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Added to queue",
+	"Data":["test_sounds/beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestAddDir(t *testing.T) {
 	url := HOST + "add/" + url.QueryEscape("test_sounds")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Added to queue\",\"Data\":[\"test_sounds/beep9.mp3\",\"test_sounds/beep28.mp3\",\"test_sounds/beep36.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Added to queue",
+	"Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestAddPlaylist(t *testing.T) {
 	url := HOST + "add/" + url.QueryEscape("sample_playlist")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Added to queue\",\"Data\":[\"test_sounds/beep9.mp3\",\"test_sounds/beep28.mp3\",\"test_sounds/beep36.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Added to queue",
+	"Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestAddNonExistingFile(t *testing.T) {
 	url := HOST + "add/" + url.QueryEscape("test_sounds/beep1.mp3")
-	expected := "{\"Code\":4,\"Message\":\"File cannot be found\"}"
+	expected := `{"Code":4,"Message":"File cannot be found"}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
 
 func TestAddInvalidFileFormat(t *testing.T) {
 	url := HOST + "add/" + url.QueryEscape("test_broken/abc.txt")
-	expected := "{\"Code\":7,\"Message\":\"Format is not supported\"}"
+	expected := `{"Code":7,"Message":"Format is not supported"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -279,7 +290,8 @@ func TestAddWithAvailableQueue(t *testing.T) {
 	performCall("POST", add_url)
 
 	url := HOST + "add/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Added to queue\",\"Data\":[\"test_sounds/beep9.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Added to queue",
+	"Data":["test_sounds/beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 	clearPlayback()
 }
@@ -289,14 +301,15 @@ func TestSaveAsPlaylist(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "save/" + url.QueryEscape("sample_playlist")
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"The queue is saved as a playlist\",\"Data\":[\"sample_playlist\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"The queue is saved as a playlist",
+	"Data":["sample_playlist"]}`
 	checkResult("PUT", url, expected, t)
 	clearPlayback()
 }
 
 func TestSaveAsPlaylistNoPlayback(t *testing.T) {
 	url := HOST + "save/" + url.QueryEscape("sample_playlist")
-	expected := "{\"Code\":14,\"Message\":\"Queue is empty and cannot be saved as playlist\"}"
+	expected := `{"Code":14,"Message":"Queue is empty and cannot be saved as playlist"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -305,7 +318,7 @@ func TestSaveAsPlaylistWrongName(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "save/" + url.QueryEscape("abc/sample_playlist")
-	expected := "{\"Code\":13,\"Message\":\"Cannot save playlist\"}"
+	expected := `{"Code":13,"Message":"Cannot save playlist"}`
 	checkResult("PUT", url, expected, t)
 	clearPlayback()
 }
@@ -316,7 +329,8 @@ func TestListPlaylists(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unexpected error found - %s", err.Error())
 	}
-	if !strings.Contains(found, "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"A list of all saved playlists\",\"Data\":[") {
+	if !strings.Contains(found, `{"Code":0,"Message":"Success",
+	"Info":"A list of all saved playlists","Data":["`) {
 		t.Errorf("playlists returned wrong result")
 	}
 }
@@ -326,13 +340,14 @@ func TestGetQueueInfo(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := HOST + "queueinfo"
-	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Queue content\",\"Data\":[\"test_sounds/beep9.mp3\",\"test_sounds/beep28.mp3\",\"test_sounds/beep36.mp3\"]}"
+	expected := `{"Code":0,"Message":"Success","Info":"Queue content",
+	"Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("GET", url, expected, t)
 	clearPlayback()
 }
 
 func TestGetQueueInfoEmpty(t *testing.T) {
 	url := HOST + "queueinfo"
-	expected := "{\"Code\":15,\"Message\":\"Cannot get queue info. Queue is empty\"}"
+	expected := `{"Code":15,"Message":"Cannot get queue info. Queue is empty"}`
 	checkResult("GET", url, expected, t)
 }

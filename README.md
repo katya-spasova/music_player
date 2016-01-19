@@ -65,9 +65,38 @@ And of course you can write your own client for any platform you like.
 | GET host:8765/playlists | returns a list of all saved playlists |
 | GET host:8765/queueinfo | returns list of all songs in the queue |
 
-    //todo: describe the response json
+### JSON Response
+The json response in case the operation is successful look similar to the following example:
+
+~~~json
+{
+   /* code for successs */
+   "Code": 0,
+   /* message for success */
+   "Message": "Success",
+   /* human readable info about what's going on (depends on request type) */
+   "Info": "Queue content",
+   /* a list of songs or playlists (depends on request type) */
+   "Data": [
+      "test_sounds/beep9.mp3",
+      "test_sounds/beep28.mp3",
+      "test_sounds/beep36.mp3"
+   ]
+}
+~~~
+
+The json response in case the operation fails looks similar to:
+
+~~~json
+{
+   /* error code */
+   "Code": 11,
+   /* human readable error message */
+   "Message": "Cannot play previous song. No previous song in queue"
+}
+~~~
     
-### Returned Codes
+### Codes used in the json response
 
 | Code | Message |
 | --- | --- |
