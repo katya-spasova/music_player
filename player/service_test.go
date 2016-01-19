@@ -207,3 +207,18 @@ func TestPreviousNoPlayback(t *testing.T) {
 	expected := "{\"Code\":11,\"Message\":\"Cannot play previous song. No previous song in queue\"}"
 	checkResult("POST", url, expected, t)
 }
+
+func TestGetCurrentSongInfo(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+
+	url := HOST + "songinfo"
+	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"The filename of the current song\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	checkResult("GET", url, expected, t)
+}
+
+func TestGetCurrentSongInfoNoPlayback(t *testing.T) {
+	url := HOST + "songinfo"
+	expected := "{\"Code\":12,\"Message\":\"There is no current song in the queue\"}"
+	checkResult("GET", url, expected, t)
+}

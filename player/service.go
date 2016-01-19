@@ -56,7 +56,7 @@ const added_to_queue_info = "Added to queue"
 const paused_song_info = "Song is paused"
 const resume_song_info = "Song is resumed"
 const playback_stopped_info = "Playback is stopped and cleaned"
-const current_song_info = "The filename if the current song"
+const current_song_info = "The filename of the current song"
 const current_queue_info = "The filenames in the current queue"
 const queue_saved_as_playlist = "The queue is saves as a playlist"
 const playlists_info = "A list of all saved playlists"
@@ -88,7 +88,7 @@ func alive(w http.ResponseWriter, r *http.Request) {
 
 // Starts playing a file, files from directory or a playlist immediately - current queue is cleared
 // The result json contains the names of the files to be played
-// or error message if song is not found, format is unsupported or SoX cannot be started
+// or error message if song is not found, format is unsupported or SoX cannot play the file
 func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
 	// todo: play file instead and return json
@@ -141,7 +141,7 @@ func getCurrentSongInfo(w http.ResponseWriter, r *http.Request) {
 // Add a song, directory or playlist to the play queue - songs will be played after all others in the queue
 // Will play the song if there is no songs in the queue
 // The result json contains the filename of the added song, directory or playlist
-// or error message if song is not found, format is unsupported or Sox cannot be started
+// or error message if song is not found, format is unsupported or Sox cannot play the file
 func addToQueue(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	filename := pat.Param(ctx, "name")
 	// todo: add to queue instead and return json
