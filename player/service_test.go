@@ -157,3 +157,27 @@ func TestStopPaused(t *testing.T) {
 	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Playback is stopped and cleaned\",\"Data\":[]}"
 	checkResult("PUT", url, expected, t)
 }
+
+func TestNext(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds")
+	performCall("PUT", play_url)
+
+	url := HOST + "next"
+	expected := "{\"Code\":0,\"Message\":\"Success\",\"Info\":\"Started playing\",\"Data\":[\"test_sounds/beep28.mp3\"]}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestNextNoNext(t *testing.T) {
+	play_url := HOST + "play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+
+	url := HOST + "next"
+	expected := "{\"Code\":10,\"Message\":\"Cannot play next song. No next song in queue\"}"
+	checkResult("POST", url, expected, t)
+}
+
+func TestNextNoPlayback(t *testing.T) {
+	url := HOST + "next"
+	expected := "{\"Code\":10,\"Message\":\"Cannot play next song. No next song in queue\"}"
+	checkResult("POST", url, expected, t)
+}
