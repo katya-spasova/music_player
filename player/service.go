@@ -58,8 +58,9 @@ const resume_song_info = "Song is resumed"
 const playback_stopped_info = "Playback is stopped and cleaned"
 const current_song_info = "The filename of the current song"
 const current_queue_info = "The filenames in the current queue"
-const queue_saved_as_playlist = "The queue is saves as a playlist"
+const queue_saved_as_playlist = "The queue is saved as a playlist"
 const playlists_info = "A list of all saved playlists"
+const queue_info = "Queue content"
 
 // type used for error json response
 type ErrorMessageContainer struct {
