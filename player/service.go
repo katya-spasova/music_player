@@ -173,14 +173,9 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 
 var player Player
 
-// Start - starts the web service
-func Start() {
-	// init the player
+func initService() *goji.Mux {
 	player = Player{}
 	player.init()
-
-	// clean up
-	defer player.clear()
 
 	// service handle functions
 	mux := goji.NewMux()
@@ -197,6 +192,19 @@ func Start() {
 	mux.HandleFunc(pat.Get("/playlists"), listPlaylists)
 	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo)
 
+	return mux
+}
+
+func clearPlayer() {
+	player.clear()
+}
+
+// Start - starts the web service
+func Start() {
+	// init the player
+	mux := initService()
+	// clean up
+	defer clearPlayer()
 	// start the service
 	http.ListenAndServe(":8765", mux)
 }

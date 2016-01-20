@@ -27,7 +27,7 @@ func TestPlaySingleFile(t *testing.T) {
 	player.playSingleFile("test_sounds/beep9.mp3")
 	wg.Wait()
 	duration := time.Since(start)
-	if duration.Seconds() < 1 {
+	if duration.Seconds() < 0.9 {
 		t.Errorf("Expected to play for at least\n---\n%d\n---\nbut played\n---\n%f\n---\n", 1,
 			duration.Seconds())
 	}
