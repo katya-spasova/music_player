@@ -70,8 +70,7 @@ The json response in case the operation is successful look similar to the follow
 ~~~json
 {
    "Code": 0,
-   "Message": "Success",
-   "Info": "Queue content",
+   "Message": "Queue content",
    "Data": [
       "test_sounds/beep9.mp3",
       "test_sounds/beep28.mp3",
@@ -93,7 +92,16 @@ The json response in case the operation fails looks similar to:
 
 | Code | Message |
 | --- | --- |
-| 0 | Success |
+| 0 | Started playing |
+| 0 | Added to queue |
+| 0 | Song is paused |
+| 0 | Song is resumed |
+| 0 | Playback is stopped and cleaned |
+| 0 | The filename of the current song |
+| 0 | The filenames in the current queue |
+| 0 | The queue is saved as a playlist |
+| 0 | A list of all saved playlists |
+| 0 | Queue content |
 | 1 | Failed to initialize SoX |
 | 2 | SoX failed to open input file |
 | 3 | Sox failed to open output device |

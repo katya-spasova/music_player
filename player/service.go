@@ -33,7 +33,6 @@ const (
 )
 
 // Messages
-const success_msg string = "Success"
 const no_sox_msg string = "Failed to initialize SoX"
 const no_sox_in_msg string = "SoX failed to open input file"
 const no_sox_out_msg string = "Sox failed to open output device"
@@ -75,8 +74,6 @@ type SuccessResponseContainer struct {
 	Code int
 	// Always Success
 	Message string
-	// A short human readable message to describe what's going on
-	Info string
 	// Filename (list if filenames)
 	Data []string
 }
