@@ -126,11 +126,11 @@ func getDisplayMessage(response ResponseContainer, err error) string {
 	if response.Code != 0 {
 		return response.Message
 	} else {
-		buffer := bytes.NewBufferString("")
-		buffer.WriteString(response.Message)
+		buffer := bytes.NewBufferString(response.Message)
 		data_list := response.Data
 		if data_list != nil && len(data_list) > 0 {
 			for _, element := range data_list {
+				buffer.WriteString(" ")
 				buffer.WriteString(element)
 			}
 		}
