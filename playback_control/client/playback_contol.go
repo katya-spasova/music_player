@@ -25,7 +25,7 @@ func GetAlive() string {
 }
 
 func PerformAction(action string, name string) string {
-	response, err := performCall(determineHttpMethod(action, string), formUrl(action, string))
+	response, err := performCall(determineHttpMethod(action, name), formUrl(action, name))
 	return getDisplayMessage(response, err)
 }
 
@@ -81,9 +81,11 @@ type ResponseContainer struct {
 	Data    []string
 }
 
-func performCall(method string, url string) (string, error) {
+func performCall(method string, url string) (ResponseContainer, error) {
 	var res *http.Response
 	var err error
+	container := ResponseContainer{}
+
 	if method == "GET" {
 		res, err = http.Get(url)
 	} else if method == "POST" {
@@ -92,13 +94,13 @@ func performCall(method string, url string) (string, error) {
 		client := &http.Client{}
 		request, err1 := http.NewRequest("PUT", url, nil)
 		if err1 != nil {
-			return nil, err1
+			return container, err1
 		}
 		res, err = client.Do(request)
 	}
 
 	if err != nil {
-		return nil, err
+		return container, err
 	}
 
 	var body []byte
@@ -106,14 +108,13 @@ func performCall(method string, url string) (string, error) {
 	res.Body.Close()
 
 	if err != nil {
-		return nil, err
+		return container, err
 	}
 
-	container := ResponseContainer{}
 	err = json.Unmarshal(body, container)
 
 	if err != nil {
-		return nil, err
+		return container, err
 	}
 	return container, nil
 }

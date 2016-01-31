@@ -61,6 +61,7 @@ const playlists_info = "A list of all saved playlists"
 const queue_info = "Queue content"
 
 // ErrorMessageContainer - type used for error json response
+// todo: is it possible to use only one message container ?!?
 type ErrorMessageContainer struct {
 	// Error code
 	Code int
