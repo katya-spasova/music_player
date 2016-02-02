@@ -8,7 +8,7 @@ import (
 )
 
 type Player struct {
-	WG    *sync.WaitGroup
+	WG *sync.WaitGroup
 	sync.Mutex
 	State *State
 }
@@ -20,6 +20,9 @@ type State struct {
 	chain     *sox.EffectsChain
 	status    int
 	startTime time.Time
+	durationPaused time.Duration
+	queue     []string
+	current   int
 }
 
 const (
@@ -59,9 +62,7 @@ func (player *Player) clear() {
 }
 
 // Plays single file
-func (player *Player) playSingleFile(filename string) error {
-	player.Lock()
-	defer player.Unlock()
+func (player *Player) playSingleFile(filename string, trim int) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
@@ -101,8 +102,6 @@ func (player *Player) playSingleFile(filename string) error {
 	chain := sox.CreateEffectsChain(in.Encoding(), out.Encoding())
 	player.State.chain = chain
 
-	//	interm_signal := in.Signal().Copy()
-
 	// The first effect in the effect chain must be something that can
 	// source samples; in this case, we use the built-in handler that
 	// inputs data from an audio file.
@@ -112,10 +111,14 @@ func (player *Player) playSingleFile(filename string) error {
 	chain.Add(e, in.Signal(), in.Signal())
 	e.Release()
 
-	//	e = sox.CreateEffect(sox.FindEffect("trim"))
-	//	e.Options("10")
-	//	chain.Add(e, interm_signal, in.Signal())
-	//	e.Release()
+	if trim > 0 {
+		interm_signal := in.Signal().Copy()
+
+		e = sox.CreateEffect(sox.FindEffect("trim"))
+		e.Options(trim) //todo: try with float ?!?
+		chain.Add(e, interm_signal, in.Signal())
+		e.Release()
+	}
 
 	// The last effect in the effect chain must be something that only consumes
 	// samples; in this case, we use the built-in handler that outputs data.
@@ -138,6 +141,48 @@ func (player *Player) playSingleFile(filename string) error {
 
 	return nil
 }
+
+func (player *Player) play(playItem string) error{
+	player.Lock()
+	defer player.Unlock()
+
+	// todo: what is playItem
+	// todo: manage queue
+	// todo: play all items
+
+	return nil
+}
+
+func (player *Player) pause() error {
+	player.Lock()
+	defer player.Unlock()
+
+	if player.State.status != Playing {
+		return errors.New("Cannot pause. Player is not playing")
+	}
+
+	player.State.chain.DeleteAll()
+	player.State.durationPaused = time.Since(player.State.startTime)
+	player.State.status = Paused
+
+	return nil
+}
+
+func (player *Player) resume() error {
+	player.Lock()
+	defer player.Unlock()
+
+	if player.State.status != Paused {
+		return errors.New("Cannot resume. Player is not paused")
+	}
+
+	songToResume := player.State.queue[player.State.current]
+	pausedDuration := player.State.durationPaused
+
+	//todo: some queue management
+	return player.playSingleFile(songToResume, pausedDuration.Seconds())
+}
+
 
 //func main() {
 //	wg := sync.WaitGroup{}

@@ -27,7 +27,7 @@ func TestPlaySingleFile(t *testing.T) {
 		t.Errorf("Expected to status Waiting \n---\n%d\n---\nbut found \n---\n%f\n---\n", Waiting, player.State.status)
 	}
 	start := time.Now()
-	player.playSingleFile("test_sounds/beep9.mp3")
+	player.playSingleFile("test_sounds/beep9.mp3", 0)
 	if player.State.status != Playing {
 		t.Errorf("Expected to status Playing \n---\n%d\n---\nbut found \n---\n%f\n---\n", Playing, player.State.status)
 	}
