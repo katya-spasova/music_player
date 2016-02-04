@@ -150,6 +150,7 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 }
 
 func (player *Player) play(playItem string) ([]string, error) {
+	player.stop()
 	player.Lock()
 
 	items, err := player.addPlayItem(playItem)
@@ -163,8 +164,6 @@ func (player *Player) play(playItem string) ([]string, error) {
 }
 
 func (player *Player) addPlayItem(playItem string) ([]string, error) {
-	//todo: maybe return the parsed items as slice
-
 	// is it file or directory
 	fileInfo, err := os.Stat(playItem)
 	if os.IsNotExist(err) != nil {
@@ -265,11 +264,11 @@ func (player *Player) pause() error {
 	return nil
 }
 
-func (player *Player) resume() error {
+func (player *Player) resume() (string, error) {
 	player.Lock()
 
 	if player.State.status != Paused {
-		return errors.New("Cannot resume. Player is not paused")
+		return "", errors.New("Cannot resume. Player is not paused")
 	}
 
 	songToResume := player.State.queue[player.State.current]
@@ -277,23 +276,25 @@ func (player *Player) resume() error {
 	player.Unlock()
 
 	go player.playQueue(pausedDuration.Seconds())
-	return nil
+	return songToResume, nil
 }
 
-func (player *Player) addToQueue(item string) error {
+func (player *Player) addToQueue(playItem string) ([]string, error) {
 	player.Lock()
-	defer player.Unlock()
 
-	//todo: determine what item it
-
-	//todo: add to queue
+	items, err := player.addPlayItem(playItem)
 
 	//start playing if in Waiting status
 	if player.State.status == Waiting {
-		go player.playQueue(0)
+		player.Unlock()
+		if err != nil {
+			go player.playQueue(0)
+		}
+	} else {
+		player.Unlock()
 	}
 
-	return nil
+	return items, err
 }
 
 func (player *Player) stop() {
@@ -303,6 +304,43 @@ func (player *Player) stop() {
 	player.State.status = Waiting
 	player.State.current = 0
 	player.State.queue = make(string, 0)
+}
+
+func (player *Player) next() (string, error) {
+	player.Lock()
+	var songToResume string
+	if player.State.current < len(player.State.queue) - 2 {
+		player.State.current += 1
+		player.State.chain.DeleteAll()
+		songToResume = player.State.queue[player.State.current]
+
+	} else {
+		player.Unlock()
+		return songToResume, errors.New("No next song in queue")
+	}
+
+	player.Unlock()
+	go player.playQueue(0)
+
+	return songToResume, nil
+}
+
+func (player *Player) previous() error {
+	player.Lock()
+	var songToResume string
+	if player.State.current > 0 {
+		player.State.current -= 1
+		player.State.chain.DeleteAll()
+		songToResume = player.State.queue[player.State.current]
+	} else {
+		player.Unlock()
+		return songToResume, errors.New("No previous song in queue")
+	}
+
+	player.Unlock()
+	go player.playQueue(0)
+
+	return songToResume, nil
 }
 
 //func main() {
