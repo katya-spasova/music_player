@@ -3,9 +3,14 @@ package player
 import "github.com/krig/go-sox"
 import (
 	"errors"
+	"os"
+	"strings"
 	"sync"
 	"time"
 )
+
+const playlistsDir = "playlists" + os.PathSeparator
+const playlistsExtension = ".m3u"
 
 type Player struct {
 	WG *sync.WaitGroup
@@ -15,14 +20,14 @@ type Player struct {
 
 // InOut struct holds the state of the player
 type State struct {
-	in        *sox.Format
-	out       *sox.Format
-	chain     *sox.EffectsChain
-	status    int
-	startTime time.Time
+	in             *sox.Format
+	out            *sox.Format
+	chain          *sox.EffectsChain
+	status         int
+	startTime      time.Time
 	durationPaused time.Duration
-	queue     []string
-	current   int
+	queue          []string
+	current        int
 }
 
 const (
@@ -40,6 +45,8 @@ func (player *Player) init() error {
 	}
 	player.State = new(State)
 	player.State.status = Waiting
+	player.State.current = 0
+	player.State.queue = make(string, 0)
 	return nil
 }
 
@@ -62,7 +69,7 @@ func (player *Player) clear() {
 }
 
 // Plays single file
-func (player *Player) playSingleFile(filename string, trim int) error {
+func (player *Player) playSingleFile(filename string, trim float32) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
@@ -142,15 +149,105 @@ func (player *Player) playSingleFile(filename string, trim int) error {
 	return nil
 }
 
-func (player *Player) play(playItem string) error{
+func (player *Player) play(playItem string) ([]string, error) {
 	player.Lock()
-	defer player.Unlock()
 
-	// todo: what is playItem
-	// todo: manage queue
-	// todo: play all items
+	items, err := player.addPlayItem(playItem)
+	player.Unlock()
 
-	return nil
+	// play all items
+	if err != nil {
+		go player.playQueue(0)
+	}
+	return items, err
+}
+
+func (player *Player) addPlayItem(playItem string) ([]string, error) {
+	//todo: maybe return the parsed items as slice
+
+	// is it file or directory
+	fileInfo, err := os.Stat(playItem)
+	if os.IsNotExist(err) != nil {
+		//try it for a playlist
+		fileInfo, err = os.Stat(playlistsDir + playItem + ".m3u")
+		if os.IsNotExist(err) {
+			return nil, errors.New(playItem + " does not exist")
+		}
+	}
+
+	items := make([]string, 0)
+
+	switch mode := fileInfo.Mode(); {
+	case mode.IsDir():
+
+		d, err := os.Open(playItem)
+		if err != nil {
+			return nil, err
+		}
+		defer d.Close()
+		files, err := d.Readdir(-1)
+		if err != nil {
+			return nil, err
+		}
+
+		for _, file := range files {
+			if file.Mode().IsRegular() {
+				added := player.addRegularFile(file.Name())
+				items = append(items, added...)
+			}
+		}
+	case mode.IsRegular():
+		added := player.addRegularFile(playItem)
+		items = append(items, added...)
+
+	}
+	return items, nil
+}
+
+func (player *Player) addRegularFile(playItem string) []string {
+	items := make([]string, 0)
+	if strings.HasSuffix(playItem, playlistsExtension) {
+		//todo: parse it
+	} else {
+		name, err := player.addFile(playItem)
+		// file is not suported - simply skip it
+		if err != nil {
+			items = append(items, name)
+		}
+	}
+	return items
+}
+
+// Adds a single file to the player queue
+// Checks if file type is supported
+func (player *Player) addFile(file string) (string, error) {
+	//todo: check if file type is supported
+	player.State.queue = append(player.State.queue, file)
+	return file, nil
+}
+
+func (player *Player) playQueue(trim float32) {
+	play := true
+	for play {
+		var fileName string
+		player.Lock()
+		index := player.State.current
+		if index < len(player.State.queue) {
+			fileName = player.State.queue[index]
+		} else {
+			play = false
+			player.State.current = 0
+			player.State.status = Waiting
+		}
+		player.Unlock()
+
+		if play && len(fileName) > 0 {
+			player.playSingleFile(fileName, trim)
+		}
+		player.Lock()
+		player.State.current += 1
+		player.Unlock()
+	}
 }
 
 func (player *Player) pause() error {
@@ -170,7 +267,6 @@ func (player *Player) pause() error {
 
 func (player *Player) resume() error {
 	player.Lock()
-	defer player.Unlock()
 
 	if player.State.status != Paused {
 		return errors.New("Cannot resume. Player is not paused")
@@ -178,11 +274,36 @@ func (player *Player) resume() error {
 
 	songToResume := player.State.queue[player.State.current]
 	pausedDuration := player.State.durationPaused
+	player.Unlock()
 
-	//todo: some queue management
-	return player.playSingleFile(songToResume, pausedDuration.Seconds())
+	go player.playQueue(pausedDuration.Seconds())
+	return nil
 }
 
+func (player *Player) addToQueue(item string) error {
+	player.Lock()
+	defer player.Unlock()
+
+	//todo: determine what item it
+
+	//todo: add to queue
+
+	//start playing if in Waiting status
+	if player.State.status == Waiting {
+		go player.playQueue(0)
+	}
+
+	return nil
+}
+
+func (player *Player) stop() {
+	player.Lock()
+	defer player.Unlock()
+	player.State.chain.DeleteAll()
+	player.State.status = Waiting
+	player.State.current = 0
+	player.State.queue = make(string, 0)
+}
 
 //func main() {
 //	wg := sync.WaitGroup{}
