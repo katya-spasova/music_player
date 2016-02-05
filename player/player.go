@@ -2,6 +2,7 @@ package player
 
 import "github.com/krig/go-sox"
 import (
+	"bufio"
 	"errors"
 	"os"
 	"strings"
@@ -206,11 +207,24 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 func (player *Player) addRegularFile(playItem string) []string {
 	items := make([]string, 0)
 	if strings.HasSuffix(playItem, playlistsExtension) {
-		//todo: parse it
+		file, err := os.Open(playItem)
+		if err == nil {
+			scanner := bufio.NewScanner(file)
+			for scanner.Scan() {
+				line := scanner.Text()
+				if len(line) > 0 && !strings.HasPrefix(line, "#") {
+					name, err := player.addFile(playItem)
+					// if file is not suported - simply skip it
+					if err == nil {
+						items = append(items, name)
+					}
+				}
+			}
+		}
 	} else {
 		name, err := player.addFile(playItem)
-		// file is not suported - simply skip it
-		if err != nil {
+		// if file is not suported - simply skip it
+		if err == nil {
 			items = append(items, name)
 		}
 	}
@@ -309,7 +323,7 @@ func (player *Player) stop() {
 func (player *Player) next() (string, error) {
 	player.Lock()
 	var songToResume string
-	if player.State.current < len(player.State.queue) - 2 {
+	if player.State.current < len(player.State.queue)-1 {
 		player.State.current += 1
 		player.State.chain.DeleteAll()
 		songToResume = player.State.queue[player.State.current]
@@ -341,6 +355,87 @@ func (player *Player) previous() error {
 	go player.playQueue(0)
 
 	return songToResume, nil
+}
+
+func (player *Player) getCurrentSongInfo() (string, error) {
+	player.Lock()
+	defer player.Unlock()
+	if player.State.current < len(player.State.queue) {
+		return player.State.queue[player.State.current], nil
+	}
+	return "", errors.New("No current song found")
+}
+
+func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
+	songs, err := player.getQueueInfo()
+	if err != nil {
+		return "", err
+	}
+	// check the directory
+	fileInfo, err := os.Stat(playlistsDir)
+	if os.IsNotExist(err) {
+		os.Mkdir(playlistsDir, 0777)
+	} else if !fileInfo.IsDir() {
+		return "", errors.New("Existing file in place of directory")
+	}
+
+	// now create the file
+	name := playlistName
+	if !strings.HasSuffix(playlistName, playlistsExtension) {
+		name = playlistName + playlistsExtension
+	}
+	file, err := os.Create(name)
+	if err != nil {
+		return "", err
+	}
+	// https://en.wikipedia.org/wiki/M3U#File_format
+	// using the non extended format
+	for song := range songs {
+		file.WriteString(song)
+		file.WriteString("\n")
+	}
+	return name, nil
+}
+
+func (player *Player) listPlaylists() ([]string, error) {
+	player.Lock()
+	defer player.Unlock()
+	//only the playlists in playlist directory is exposed
+	fileInfo, err := os.Stat(playlistsDir)
+	if os.IsNotExist(err) || !fileInfo.IsDir() {
+		return nil, errors.New("no playlists dir")
+	}
+	playlists := make([]string, 0)
+	d, err := os.Open(playlistsDir)
+	if err != nil {
+		return nil, err
+	}
+	defer d.Close()
+	files, err := d.Readdir(-1)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, file := range files {
+		if file.Mode().IsRegular() && strings.HasSuffix(file.Name(), playlistsExtension) {
+			playlists = append(playlists, file.Name())
+		}
+	}
+	return "", nil
+}
+
+func (player *Player) getQueueInfo() ([]string, error) {
+	player.Lock()
+	defer player.Unlock()
+	if len(player.State.queue) == 0 {
+		return nil, errors.New("Empty queue")
+	}
+	//make a copy to the queue
+	copy := make([]string, 0, len(player.State.queue))
+	for el := range player.State.queue {
+		copy = append(copy, el)
+	}
+	return copy, nil
 }
 
 //func main() {

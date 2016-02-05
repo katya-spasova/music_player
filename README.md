@@ -13,40 +13,40 @@ So you should install it first.
 
 *Linux:*
 
-  Installation depend on your distribution. You may try:
-    
-  **yum install sox**
-      
+  Installation depends on your distribution. You may try:
+
+  **yum install sox libsox-fmt-all**
+
   or:
-    
-  **apt-get install sox**
+
+  **apt-get install sox libsox-fmt-all**
 
 *OSX:*
 
   The easiest way is to use Homebrew (http://brew.sh/)
 
-  **brew install sox**
-   
+  **brew install sox --with-libvorbis --with-flac --with-lame**
+
 To get this project execute:
 
   **go get github.com/katya-spasova/music_player**
 
 Start the service:
   **go run start_service.go**
-    
+
 ## What are the supported music formats?
 
 music_player supports mp3 so far. Others may be added in the future.
-    
+
 ## How do I use music_player?
 
-music_player comes with a client, called playback_control. Go to music_player directory and 
+music_player comes with a client, called playback_control. Go to music_player directory and
 start it. Check the --help to see how it is used.
 
 You can use music_player by directly sending HTTP request to it. Check below to see the API.
 
 And of course you can write your own client for any platform you like.
-    
+
 ## What's the web service API?
 
 | PATH | Description|
@@ -87,7 +87,7 @@ The json response in case the operation fails looks similar to:
    "Message": "Cannot play previous song. No previous song in queue"
 }
 ~~~
-    
+
 ### Codes used in the json response
 
 | Code | Message |
@@ -120,12 +120,12 @@ The json response in case the operation fails looks similar to:
 
 ## Why would I use music_player?
 
-Ever happended to you to listen to music and the computer you're working/playing on is not the 
+Ever happended to you to listen to music and the computer you're working/playing on is not the
 one that plays the music? Your mobile phone is very likely to be a computer too.
 You had to switch the computer to change the song you're listening to.
-With music_player you can do it from any device as long as your computers are connected 
+With music_player you can do it from any device as long as your computers are connected
 to the internet (or are in the same local network).
-    
+
 ## External sources?
 
 music_player uses **github.com/krig/go-sox** and **goji.io**
