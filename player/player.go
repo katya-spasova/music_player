@@ -12,11 +12,92 @@ import (
 
 const playlistsDir = "playlists" + os.PathSeparator
 const playlistsExtension = ".m3u"
+const supportedExtensions = []string{
+	"mp3",
+	"ogg",
+	"flac",
+	"8svx",
+	"aif",
+	"aifc",
+	"aiff",
+	"aiffc",
+	"al",
+	"amb",
+	"au",
+	"avr",
+	"cdda",
+	"cdr",
+	"cvs",
+	"cvsd",
+	"cvu",
+	"dat",
+	"dvms",
+	"f32",
+	"f4",
+	"f64",
+	"f8",
+	"fssd",
+	"gsm",
+	"gsrt",
+	"hcom",
+	"htk",
+	"ima",
+	"ircam",
+	"la",
+	"lpc",
+	"lpc10",
+	"lu",
+	"maud",
+	"mp2",
+	"nist",
+	"prc",
+	"raw",
+	"s1",
+	"s16",
+	"s2",
+	"s24",
+	"s3",
+	"s32",
+	"s4",
+	"s8",
+	"sb",
+	"sf",
+	"sl",
+	"sln",
+	"smp",
+	"snd",
+	"sndr",
+	"sndt",
+	"sou",
+	"sox",
+	"sph",
+	"sw",
+	"txw",
+	"u1",
+	"u16",
+	"u2",
+	"u24",
+	"u3",
+	"u32",
+	"u4",
+	"u8",
+	"ub",
+	"ul",
+	"uw",
+	"vms",
+	"voc",
+	"vorbis",
+	"vox",
+	"wav",
+	"wavpcm",
+	"wve",
+	"xa",
+}
 
 type Player struct {
 	WG *sync.WaitGroup
 	sync.Mutex
-	State *State
+	state *State
 }
 
 // InOut struct holds the state of the player
@@ -44,10 +125,10 @@ func (player *Player) init() error {
 	if !sox.Init() {
 		return errors.New(no_sox_msg)
 	}
-	player.State = new(State)
-	player.State.status = Waiting
-	player.State.current = 0
-	player.State.queue = make(string, 0)
+	player.state = new(State)
+	player.state.status = Waiting
+	player.state.current = 0
+	player.state.queue = make(string, 0)
 	return nil
 }
 
@@ -56,20 +137,21 @@ func (player *Player) clear() {
 	player.Lock()
 	defer player.Unlock()
 	sox.Quit()
-	if player.State.in != nil {
-		player.State.in.Release()
+	if player.state.in != nil {
+		player.state.in.Release()
 	}
 
-	if player.State.out != nil {
-		player.State.out.Release()
+	if player.state.out != nil {
+		player.state.out.Release()
 	}
 
-	if player.State.chain != nil {
-		player.State.chain.Release()
+	if player.state.chain != nil {
+		player.state.chain.Release()
 	}
 }
 
 // Plays single file
+// Returns error if file could not be played
 func (player *Player) playSingleFile(filename string, trim float32) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
@@ -79,7 +161,7 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 		}
 		return errors.New(no_sox_in_msg)
 	}
-	player.State.in = in
+	player.state.in = in
 
 	// Open the output device: Specify the output signal characteristics.
 	// Since we are using only simple effects, they are the same as the
@@ -103,12 +185,12 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 			}
 		}
 	}
-	player.State.out = out
+	player.state.out = out
 
 	// Create an effects chain: Some effects need to know about the
 	// input or output encoding so we provide that information here.
 	chain := sox.CreateEffectsChain(in.Encoding(), out.Encoding())
-	player.State.chain = chain
+	player.state.chain = chain
 
 	// The first effect in the effect chain must be something that can
 	// source samples; in this case, we use the built-in handler that
@@ -135,8 +217,8 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 	chain.Add(e, in.Signal(), in.Signal())
 	e.Release()
 
-	player.State.status = Playing
-	player.State.startTime = time.Now()
+	player.state.status = Playing
+	player.state.startTime = time.Now()
 
 	// Flow samples through the effects processing chain until EOF is reached.
 	go func(wg *sync.WaitGroup) {
@@ -144,12 +226,14 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 		if wg != nil {
 			wg.Done()
 		}
-		player.State.status = Waiting
+		player.state.status = Waiting
 	}(player.WG)
 
 	return nil
 }
 
+// Plays a file, directory or playlists
+// Returns error if nothing is to be played
 func (player *Player) play(playItem string) ([]string, error) {
 	player.stop()
 	player.Lock()
@@ -164,12 +248,14 @@ func (player *Player) play(playItem string) ([]string, error) {
 	return items, err
 }
 
+// Adds a file, directory or playlist to the play queue
+// Returns the names of the added songs or error if nothing was added
 func (player *Player) addPlayItem(playItem string) ([]string, error) {
 	// is it file or directory
 	fileInfo, err := os.Stat(playItem)
 	if os.IsNotExist(err) != nil {
 		//try it for a playlist
-		fileInfo, err = os.Stat(playlistsDir + playItem + ".m3u")
+		fileInfo, err = os.Stat(playlistsDir + playItem + playlistsExtension)
 		if os.IsNotExist(err) {
 			return nil, errors.New(playItem + " does not exist")
 		}
@@ -201,9 +287,15 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 		items = append(items, added...)
 
 	}
+	if len(items) == 0 {
+		return nil, errors.New("File type not supported")
+	}
 	return items, nil
 }
 
+// Adds a file or playlist items to the play queue
+// Skips the non supported files
+// Returns the names of the added files
 func (player *Player) addRegularFile(playItem string) []string {
 	items := make([]string, 0)
 	if strings.HasSuffix(playItem, playlistsExtension) {
@@ -233,24 +325,44 @@ func (player *Player) addRegularFile(playItem string) []string {
 
 // Adds a single file to the player queue
 // Checks if file type is supported
-func (player *Player) addFile(file string) (string, error) {
-	//todo: check if file type is supported
-	player.State.queue = append(player.State.queue, file)
-	return file, nil
+func (player *Player) addFile(fileName string) (string, error) {
+	if !isSupportedType(fileName) {
+		return "", errors.New("File type not supported")
+	}
+	player.state.queue = append(player.state.queue, fileName)
+	return fileName, nil
 }
 
+// Checks if the file type is supported
+func isSupportedType(fileName string) bool {
+	parts := strings.Split(fileName, ".")
+	extension := parts[len(parts)-1]
+	supported := false
+	if len(extension) > 0 {
+		for el := range supportedExtensions {
+			if extension == el {
+				supported = true
+				break
+			}
+		}
+	}
+	return supported
+}
+
+// Plays the songs in the queue from the current one on
+// Trims the song if it was paused
 func (player *Player) playQueue(trim float32) {
 	play := true
 	for play {
 		var fileName string
 		player.Lock()
-		index := player.State.current
-		if index < len(player.State.queue) {
-			fileName = player.State.queue[index]
+		index := player.state.current
+		if index < len(player.state.queue) {
+			fileName = player.state.queue[index]
 		} else {
 			play = false
-			player.State.current = 0
-			player.State.status = Waiting
+			player.state.current = 0
+			player.state.status = Waiting
 		}
 		player.Unlock()
 
@@ -258,48 +370,55 @@ func (player *Player) playQueue(trim float32) {
 			player.playSingleFile(fileName, trim)
 		}
 		player.Lock()
-		player.State.current += 1
+		player.state.current += 1
 		player.Unlock()
 	}
 }
 
-func (player *Player) pause() error {
+// Pauses the playback
+// Returns the name of the paused song or error if player was playing nothing
+func (player *Player) pause() (string, error) {
 	player.Lock()
 	defer player.Unlock()
 
-	if player.State.status != Playing {
-		return errors.New("Cannot pause. Player is not playing")
+	if player.state.status != Playing {
+		return "", errors.New("Cannot pause. Player is not playing")
 	}
 
-	player.State.chain.DeleteAll()
-	player.State.durationPaused = time.Since(player.State.startTime)
-	player.State.status = Paused
+	player.state.chain.DeleteAll()
+	player.state.durationPaused = time.Since(player.state.startTime)
+	player.state.status = Paused
 
-	return nil
+	return player.state.queue[player.state.current], nil
 }
 
+// Resumes the playback
+// Returns  the name of the resumed song or error is player was not paused
 func (player *Player) resume() (string, error) {
 	player.Lock()
 
-	if player.State.status != Paused {
+	if player.state.status != Paused {
 		return "", errors.New("Cannot resume. Player is not paused")
 	}
 
-	songToResume := player.State.queue[player.State.current]
-	pausedDuration := player.State.durationPaused
+	songToResume := player.state.queue[player.state.current]
+	pausedDuration := player.state.durationPaused
 	player.Unlock()
 
 	go player.playQueue(pausedDuration.Seconds())
 	return songToResume, nil
 }
 
+// Adds a song to the queue
+// Starts playing if player is in waiting state
+// Returns added songs or error if nothing was added
 func (player *Player) addToQueue(playItem string) ([]string, error) {
 	player.Lock()
 
 	items, err := player.addPlayItem(playItem)
 
 	//start playing if in Waiting status
-	if player.State.status == Waiting {
+	if player.state.status == Waiting {
 		player.Unlock()
 		if err != nil {
 			go player.playQueue(0)
@@ -311,22 +430,25 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 	return items, err
 }
 
+// Stops the playback and clears the player's state
 func (player *Player) stop() {
 	player.Lock()
 	defer player.Unlock()
-	player.State.chain.DeleteAll()
-	player.State.status = Waiting
-	player.State.current = 0
-	player.State.queue = make(string, 0)
+	player.state.chain.DeleteAll()
+	player.state.status = Waiting
+	player.state.current = 0
+	player.state.queue = make(string, 0)
 }
 
+// Plays the next song from the queue
+// Returns the name of the song or error if there is no next song
 func (player *Player) next() (string, error) {
 	player.Lock()
 	var songToResume string
-	if player.State.current < len(player.State.queue)-1 {
-		player.State.current += 1
-		player.State.chain.DeleteAll()
-		songToResume = player.State.queue[player.State.current]
+	if player.state.current < len(player.state.queue)-1 {
+		player.state.current += 1
+		player.state.chain.DeleteAll()
+		songToResume = player.state.queue[player.state.current]
 
 	} else {
 		player.Unlock()
@@ -339,13 +461,15 @@ func (player *Player) next() (string, error) {
 	return songToResume, nil
 }
 
+// Plays the previous song from the queue
+// Returns the name of the song or an error if there is no previous song
 func (player *Player) previous() error {
 	player.Lock()
 	var songToResume string
-	if player.State.current > 0 {
-		player.State.current -= 1
-		player.State.chain.DeleteAll()
-		songToResume = player.State.queue[player.State.current]
+	if player.state.current > 0 {
+		player.state.current -= 1
+		player.state.chain.DeleteAll()
+		songToResume = player.state.queue[player.state.current]
 	} else {
 		player.Unlock()
 		return songToResume, errors.New("No previous song in queue")
@@ -357,15 +481,19 @@ func (player *Player) previous() error {
 	return songToResume, nil
 }
 
+// Gets the name of the current song
+// Returns the name of the current song or error if there is no current song
 func (player *Player) getCurrentSongInfo() (string, error) {
 	player.Lock()
 	defer player.Unlock()
-	if player.State.current < len(player.State.queue) {
-		return player.State.queue[player.State.current], nil
+	if player.state.current < len(player.state.queue) {
+		return player.state.queue[player.state.current], nil
 	}
 	return "", errors.New("No current song found")
 }
 
+// Saves the contents of the queue as a playlist
+// Returns the name of the playlist or an error if the playlist could not be saved
 func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	songs, err := player.getQueueInfo()
 	if err != nil {
@@ -397,6 +525,8 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	return name, nil
 }
 
+// Returns all playlist names from the dedicated directory
+// or error if no playlists are found
 func (player *Player) listPlaylists() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
@@ -421,18 +551,23 @@ func (player *Player) listPlaylists() ([]string, error) {
 			playlists = append(playlists, file.Name())
 		}
 	}
-	return "", nil
+	if len(playlists) == 0 {
+		return nil, errors.New("No playlists found")
+	}
+	return playlists, nil
 }
 
+// Gets the queue info
+// Returns all filenames that are currently in the queue or error if queue is empty
 func (player *Player) getQueueInfo() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
-	if len(player.State.queue) == 0 {
+	if len(player.state.queue) == 0 {
 		return nil, errors.New("Empty queue")
 	}
 	//make a copy to the queue
-	copy := make([]string, 0, len(player.State.queue))
-	for el := range player.State.queue {
+	copy := make([]string, 0, len(player.state.queue))
+	for el := range player.state.queue {
 		copy = append(copy, el)
 	}
 	return copy, nil

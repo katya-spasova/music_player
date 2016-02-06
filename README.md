@@ -36,7 +36,8 @@ Start the service:
 
 ## What are the supported music formats?
 
-music_player supports mp3 so far. Others may be added in the future.
+music_player will let you work with:
+*8svx aif aifc aiff aiffc al amb au avr cdda cdr cvs cvsd cvu dat dvms f32 f4 f64 f8 flac fssd gsm gsrt hcom htk ima ircam la lpc lpc10 lu maud mp2 mp3 nist ogg prc raw s1 s16 s2 s24 s3 s32 s4 s8 sb sf sl sln smp snd sndr sndt sou sox sph sw txw u1 u16 u2 u24 u3 u32 u4 u8 ub ul uw vms voc vox wav wavpcm wve xa*
 
 ## How do I use music_player?
 
