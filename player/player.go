@@ -10,9 +10,10 @@ import (
 	"time"
 )
 
-const playlistsDir = "playlists" + os.PathSeparator
+const playlistsDir string = "playlists/"
 const playlistsExtension = ".m3u"
-const supportedExtensions = []string{
+
+var supportedExtensions []string = []string{
 	"mp3",
 	"ogg",
 	"flac",
@@ -95,7 +96,7 @@ const supportedExtensions = []string{
 }
 
 type Player struct {
-	WG *sync.WaitGroup
+	wg *sync.WaitGroup
 	sync.Mutex
 	state *State
 }
@@ -128,7 +129,7 @@ func (player *Player) init() error {
 	player.state = new(State)
 	player.state.status = Waiting
 	player.state.current = 0
-	player.state.queue = make(string, 0)
+	player.state.queue = make([]string, 0)
 	return nil
 }
 
@@ -152,12 +153,12 @@ func (player *Player) clear() {
 
 // Plays single file
 // Returns error if file could not be played
-func (player *Player) playSingleFile(filename string, trim float32) error {
+func (player *Player) playSingleFile(filename string, trim float64) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
-		if player.WG != nil {
-			player.WG.Done()
+		if player.wg != nil {
+			player.wg.Done()
 		}
 		return errors.New(no_sox_in_msg)
 	}
@@ -177,8 +178,8 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 			if out == nil {
 				out = sox.OpenWrite("default", in.Signal(), nil, "waveaudio")
 				if out == nil {
-					if player.WG != nil {
-						player.WG.Done()
+					if player.wg != nil {
+						player.wg.Done()
 					}
 					return errors.New(no_sox_out_msg)
 				}
@@ -227,7 +228,7 @@ func (player *Player) playSingleFile(filename string, trim float32) error {
 			wg.Done()
 		}
 		player.state.status = Waiting
-	}(player.WG)
+	}(player.wg)
 
 	return nil
 }
@@ -253,7 +254,7 @@ func (player *Player) play(playItem string) ([]string, error) {
 func (player *Player) addPlayItem(playItem string) ([]string, error) {
 	// is it file or directory
 	fileInfo, err := os.Stat(playItem)
-	if os.IsNotExist(err) != nil {
+	if os.IsNotExist(err) {
 		//try it for a playlist
 		fileInfo, err = os.Stat(playlistsDir + playItem + playlistsExtension)
 		if os.IsNotExist(err) {
@@ -338,8 +339,8 @@ func isSupportedType(fileName string) bool {
 	parts := strings.Split(fileName, ".")
 	extension := parts[len(parts)-1]
 	supported := false
-	if len(extension) > 0 {
-		for el := range supportedExtensions {
+	if len(parts) > 1 && len(extension) > 0 {
+		for _, el := range supportedExtensions {
 			if extension == el {
 				supported = true
 				break
@@ -351,7 +352,7 @@ func isSupportedType(fileName string) bool {
 
 // Plays the songs in the queue from the current one on
 // Trims the song if it was paused
-func (player *Player) playQueue(trim float32) {
+func (player *Player) playQueue(trim float64) {
 	play := true
 	for play {
 		var fileName string
@@ -437,7 +438,7 @@ func (player *Player) stop() {
 	player.state.chain.DeleteAll()
 	player.state.status = Waiting
 	player.state.current = 0
-	player.state.queue = make(string, 0)
+	player.state.queue = make([]string, 0)
 }
 
 // Plays the next song from the queue
@@ -463,7 +464,7 @@ func (player *Player) next() (string, error) {
 
 // Plays the previous song from the queue
 // Returns the name of the song or an error if there is no previous song
-func (player *Player) previous() error {
+func (player *Player) previous() (string, error) {
 	player.Lock()
 	var songToResume string
 	if player.state.current > 0 {
@@ -518,7 +519,7 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	}
 	// https://en.wikipedia.org/wiki/M3U#File_format
 	// using the non extended format
-	for song := range songs {
+	for _, song := range songs {
 		file.WriteString(song)
 		file.WriteString("\n")
 	}
@@ -567,7 +568,7 @@ func (player *Player) getQueueInfo() ([]string, error) {
 	}
 	//make a copy to the queue
 	copy := make([]string, 0, len(player.state.queue))
-	for el := range player.state.queue {
+	for _, el := range player.state.queue {
 		copy = append(copy, el)
 	}
 	return copy, nil
