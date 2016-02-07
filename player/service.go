@@ -60,23 +60,14 @@ const queue_saved_as_playlist = "The queue is saved as a playlist"
 const playlists_info = "A list of all saved playlists"
 const queue_info = "Queue content"
 
-// ErrorMessageContainer - type used for error json response
-// todo: is it possible to use only one message container ?!?
-type ErrorMessageContainer struct {
-	// Error code
+// ResponseContainer - type used for json response
+type ResponseContainer struct {
+	// Error code or 0 for Success
 	Code int
-	// Error message
-	Message string
-}
-
-// SuccessResponseContainer - type used for success json response
-type SuccessResponseContainer struct {
-	// Always 0
-	Code int
-	// Always Success
+	// Error message or Info message
 	Message string
 	// Filename (list if filenames)
-	Data []string
+	Data []string `json:"Data,omitempty"`
 }
 
 // Shows if the service is alive
@@ -89,7 +80,7 @@ func alive(w http.ResponseWriter, r *http.Request) {
 // or error message if song is not found, format is unsupported or SoX cannot play the file
 func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
-	// todo: play file instead and return json
+	//	list, err := player.play(name)
 	fmt.Fprintf(w, "Playing, %s!", name)
 }
 

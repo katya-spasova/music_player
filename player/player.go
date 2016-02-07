@@ -243,8 +243,11 @@ func (player *Player) play(playItem string) ([]string, error) {
 	player.Unlock()
 
 	// play all items
-	if err != nil {
-		go player.playQueue(0)
+	ch := make(chan error)
+	defer close(ch)
+	if err == nil {
+		go player.playQueue(0, ch)
+		err <- ch
 	}
 	return items, err
 }
@@ -258,7 +261,7 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 		//try it for a playlist
 		fileInfo, err = os.Stat(playlistsDir + playItem + playlistsExtension)
 		if os.IsNotExist(err) {
-			return nil, errors.New(playItem + " does not exist")
+			return nil, errors.New(file_not_found_msg)
 		}
 	}
 
@@ -269,12 +272,12 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 
 		d, err := os.Open(playItem)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(file_not_found_msg)
 		}
 		defer d.Close()
 		files, err := d.Readdir(-1)
 		if err != nil {
-			return nil, err
+			return nil, errors.New(file_not_found_msg)
 		}
 
 		for _, file := range files {
@@ -289,7 +292,7 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 
 	}
 	if len(items) == 0 {
-		return nil, errors.New("File type not supported")
+		return nil, errors.New(format_not_supported_msg)
 	}
 	return items, nil
 }
@@ -328,7 +331,7 @@ func (player *Player) addRegularFile(playItem string) []string {
 // Checks if file type is supported
 func (player *Player) addFile(fileName string) (string, error) {
 	if !isSupportedType(fileName) {
-		return "", errors.New("File type not supported")
+		return "", errors.New(format_not_supported_msg)
 	}
 	player.state.queue = append(player.state.queue, fileName)
 	return fileName, nil
@@ -352,8 +355,9 @@ func isSupportedType(fileName string) bool {
 
 // Plays the songs in the queue from the current one on
 // Trims the song if it was paused
-func (player *Player) playQueue(trim float64) {
+func (player *Player) playQueue(trim float64, ch chan error) {
 	play := true
+	first := true
 	for play {
 		var fileName string
 		player.Lock()
@@ -368,7 +372,11 @@ func (player *Player) playQueue(trim float64) {
 		player.Unlock()
 
 		if play && len(fileName) > 0 {
-			player.playSingleFile(fileName, trim)
+			err := player.playSingleFile(fileName, trim)
+			if first {
+				first = false
+				ch <- err
+			}
 		}
 		player.Lock()
 		player.state.current += 1
@@ -383,7 +391,7 @@ func (player *Player) pause() (string, error) {
 	defer player.Unlock()
 
 	if player.state.status != Playing {
-		return "", errors.New("Cannot pause. Player is not playing")
+		return "", errors.New(cannot_pause_msg)
 	}
 
 	player.state.chain.DeleteAll()
@@ -399,15 +407,18 @@ func (player *Player) resume() (string, error) {
 	player.Lock()
 
 	if player.state.status != Paused {
-		return "", errors.New("Cannot resume. Player is not paused")
+		return "", errors.New(cannot_pause_msg)
 	}
 
 	songToResume := player.state.queue[player.state.current]
 	pausedDuration := player.state.durationPaused
 	player.Unlock()
 
-	go player.playQueue(pausedDuration.Seconds())
-	return songToResume, nil
+	ch := make(chan error)
+	defer close(ch)
+	go player.playQueue(pausedDuration.Seconds(), ch)
+	err := <-ch
+	return songToResume, err
 }
 
 // Adds a song to the queue
@@ -421,8 +432,11 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 	//start playing if in Waiting status
 	if player.state.status == Waiting {
 		player.Unlock()
-		if err != nil {
-			go player.playQueue(0)
+		ch := make(chan error)
+		defer close(ch)
+		if err == nil {
+			go player.playQueue(0, ch)
+			err <- ch
 		}
 	} else {
 		player.Unlock()
@@ -453,13 +467,16 @@ func (player *Player) next() (string, error) {
 
 	} else {
 		player.Unlock()
-		return songToResume, errors.New("No next song in queue")
+		return songToResume, errors.New(cannot_next_msg)
 	}
 
 	player.Unlock()
-	go player.playQueue(0)
+	ch := make(chan error)
+	defer close(ch)
+	go player.playQueue(0, ch)
+	err := <-ch
 
-	return songToResume, nil
+	return songToResume, err
 }
 
 // Plays the previous song from the queue
@@ -473,13 +490,16 @@ func (player *Player) previous() (string, error) {
 		songToResume = player.state.queue[player.state.current]
 	} else {
 		player.Unlock()
-		return songToResume, errors.New("No previous song in queue")
+		return songToResume, errors.New(cannot_previous_msg)
 	}
 
 	player.Unlock()
-	go player.playQueue(0)
+	ch := make(chan error)
+	defer close(ch)
+	go player.playQueue(0, ch)
+	err := <-ch
 
-	return songToResume, nil
+	return songToResume, err
 }
 
 // Gets the name of the current song
@@ -490,7 +510,7 @@ func (player *Player) getCurrentSongInfo() (string, error) {
 	if player.state.current < len(player.state.queue) {
 		return player.state.queue[player.state.current], nil
 	}
-	return "", errors.New("No current song found")
+	return "", errors.New(cannot_get_info_msg)
 }
 
 // Saves the contents of the queue as a playlist
@@ -498,14 +518,14 @@ func (player *Player) getCurrentSongInfo() (string, error) {
 func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	songs, err := player.getQueueInfo()
 	if err != nil {
-		return "", err
+		return "", errors.New(cannot_save_playlist_msg)
 	}
 	// check the directory
 	fileInfo, err := os.Stat(playlistsDir)
 	if os.IsNotExist(err) {
 		os.Mkdir(playlistsDir, 0777)
 	} else if !fileInfo.IsDir() {
-		return "", errors.New("Existing file in place of directory")
+		return "", errors.New(cannot_save_playlist_msg)
 	}
 
 	// now create the file
@@ -515,7 +535,7 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	}
 	file, err := os.Create(name)
 	if err != nil {
-		return "", err
+		return "", errors.New(cannot_save_playlist_msg)
 	}
 	// https://en.wikipedia.org/wiki/M3U#File_format
 	// using the non extended format
@@ -534,17 +554,17 @@ func (player *Player) listPlaylists() ([]string, error) {
 	//only the playlists in playlist directory is exposed
 	fileInfo, err := os.Stat(playlistsDir)
 	if os.IsNotExist(err) || !fileInfo.IsDir() {
-		return nil, errors.New("no playlists dir")
+		return nil, errors.New(playlist_not_found_msg)
 	}
 	playlists := make([]string, 0)
 	d, err := os.Open(playlistsDir)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(playlist_not_found_msg)
 	}
 	defer d.Close()
 	files, err := d.Readdir(-1)
 	if err != nil {
-		return nil, err
+		return nil, errors.New(playlist_not_found_msg)
 	}
 
 	for _, file := range files {
@@ -553,7 +573,7 @@ func (player *Player) listPlaylists() ([]string, error) {
 		}
 	}
 	if len(playlists) == 0 {
-		return nil, errors.New("No playlists found")
+		return nil, errors.New(playlist_not_found_msg)
 	}
 	return playlists, nil
 }
@@ -564,7 +584,7 @@ func (player *Player) getQueueInfo() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
 	if len(player.state.queue) == 0 {
-		return nil, errors.New("Empty queue")
+		return nil, errors.New(cannot_get_queue_info_msg)
 	}
 	//make a copy to the queue
 	copy := make([]string, 0, len(player.state.queue))
