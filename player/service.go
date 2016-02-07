@@ -12,24 +12,7 @@ import (
 // Success and error codes
 const (
 	success = iota
-	// SoX related
-	no_sox
-	no_sox_in
-	no_sox_out
-	// Files related
-	file_not_found
-	playlist_not_found
-	no_playlists
-	format_not_supported
-	cannot_save_playlist
-	// Playback related
-	cannot_pause
-	cannot_resume
-	cannot_next
-	cannot_previous
-	cannot_get_song_info
-	cannot_save_empty_queue
-	cannot_get_queue_info
+	failure
 )
 
 // Messages
@@ -80,7 +63,7 @@ func alive(w http.ResponseWriter, r *http.Request) {
 // or error message if song is not found, format is unsupported or SoX cannot play the file
 func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
-	//	list, err := player.play(name)
+	list, err := player.play(name)
 	fmt.Fprintf(w, "Playing, %s!", name)
 }
 

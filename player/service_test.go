@@ -89,7 +89,7 @@ func TestPlayNonExistingFile(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep1.mp3")
-	expected := `{"Code":4,"Message":"File cannot be found"}`
+	expected := `{"Code":1,"Message":"File cannot be found"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -98,7 +98,7 @@ func TestPlayInvalidFileFormat(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_broken/abc.txt")
-	expected := `{"Code":7,"Message":"Format is not supported"}`
+	expected := `{"Code":1,"Message":"Format is not supported"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -107,7 +107,7 @@ func TestPlayBrokenFile(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_broken/abc.txt")
-	expected := `{"Code":2,"Message":"SoX failed to open input file"}`
+	expected := `{"Code":1,"Message":"SoX failed to open input file"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -128,7 +128,7 @@ func TestPauseNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/pause"
-	expected := `{"Code":2,"Message":"Cannot pause. No song is playing"}`
+	expected := `{"Code":1,"Message":"Cannot pause. No song is playing"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -151,7 +151,7 @@ func TestResumeNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/resume"
-	expected := `{"Code":9,"Message":"Cannot resume. No song was paused"}`
+	expected := `{"Code":1,"Message":"Cannot resume. No song was paused"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -163,7 +163,7 @@ func TestResumeNoPaused(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/resume"
-	expected := `{"Code":9,"Message":"Cannot resume. No song was paused"}`
+	expected := `{"Code":1,"Message":"Cannot resume. No song was paused"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -222,7 +222,7 @@ func TestNextNoNext(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/next"
-	expected := `{"Code":10,"Message":"Cannot play next song. No next song in queue"}`
+	expected := `{"Code":1,"Message":"Cannot play next song. No next song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -231,7 +231,7 @@ func TestNextNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/next"
-	expected := `{"Code":10,"Message":"Cannot play next song. No next song in queue"}`
+	expected := `{"Code":1,"Message":"Cannot play next song. No next song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -257,7 +257,7 @@ func TestPreviousNoPrevious(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/previous"
-	expected := `{"Code":11,"Message":"Cannot play previous song. No previous song in queue"}`
+	expected := `{"Code":1,"Message":"Cannot play previous song. No previous song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -266,7 +266,7 @@ func TestPreviousNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/previous"
-	expected := `{"Code":11,"Message":"Cannot play previous song. No previous song in queue"}`
+	expected := `{"Code":1,"Message":"Cannot play previous song. No previous song in queue"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -287,7 +287,7 @@ func TestGetCurrentSongInfoNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/songinfo"
-	expected := `{"Code":12,"Message":"There is no current song in the queue"}`
+	expected := `{"Code":1,"Message":"There is no current song in the queue"}`
 	checkResult("GET", url, expected, t)
 }
 
@@ -323,7 +323,7 @@ func TestAddNonExistingFile(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep1.mp3")
-	expected := `{"Code":4,"Message":"File cannot be found"}`
+	expected := `{"Code":1,"Message":"File cannot be found"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -332,7 +332,7 @@ func TestAddInvalidFileFormat(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/add/" + url.QueryEscape("test_broken/abc.txt")
-	expected := `{"Code":7,"Message":"Format is not supported"}`
+	expected := `{"Code":1,"Message":"Format is not supported"}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -365,7 +365,7 @@ func TestSaveAsPlaylistNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/save/" + url.QueryEscape("sample_playlist")
-	expected := `{"Code":14,"Message":"Queue is empty and cannot be saved as playlist"}`
+	expected := `{"Code":1,"Message":"Queue is empty and cannot be saved as playlist"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -377,7 +377,7 @@ func TestSaveAsPlaylistWrongName(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/save/" + url.QueryEscape("abc/sample_playlist")
-	expected := `{"Code":13,"Message":"Cannot save playlist"}`
+	expected := `{"Code":1,"Message":"Cannot save playlist"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -412,6 +412,6 @@ func TestGetQueueInfoEmpty(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/queueinfo"
-	expected := `{"Code":15,"Message":"Cannot get queue info. Queue is empty"}`
+	expected := `{"Code":1,"Message":"Cannot get queue info. Queue is empty"}`
 	checkResult("GET", url, expected, t)
 }

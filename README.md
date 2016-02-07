@@ -84,12 +84,14 @@ The json response in case the operation fails looks similar to:
 
 ~~~json
 {
-   "Code": 11,
+   "Code": 1,
    "Message": "Cannot play previous song. No previous song in queue"
 }
 ~~~
 
 ### Codes used in the json response
+
+Code "0" is used for success and "1" failure
 
 | Code | Message |
 | --- | --- |
@@ -104,20 +106,20 @@ The json response in case the operation fails looks similar to:
 | 0 | A list of all saved playlists |
 | 0 | Queue content |
 | 1 | Failed to initialize SoX |
-| 2 | SoX failed to open input file |
-| 3 | Sox failed to open output device |
-| 4 | File cannot be found |
-| 5 | Playlist cannot be found |
-| 6 | Currently there are no saved playlists |
-| 7 | Format is not supported |
-| 8 | Cannot pause. No song is playing |
-| 9 | Cannot resume. No song was paused |
-| 10 | Cannot play next song. No next song in queue |
-| 11 | Cannot play previous song. No previous song in queue |
-| 12 | There is no current song in the queue |
-| 13 | Cannot save playlist |
-| 14 | Queue is empty and cannot be saved as playlist |
-| 15 | Cannot get queue info. Queue is empty |
+| 1 | SoX failed to open input file |
+| 1 | Sox failed to open output device |
+| 1 | File cannot be found |
+| 1 | Playlist cannot be found |
+| 1 | Currently there are no saved playlists |
+| 1 | Format is not supported |
+| 1 | Cannot pause. No song is playing |
+| 1 | Cannot resume. No song was paused |
+| 1 | Cannot play next song. No next song in queue |
+| 1 | Cannot play previous song. No previous song in queue |
+| 1 | There is no current song in the queue |
+| 1 | Cannot save playlist |
+| 1 | Queue is empty and cannot be saved as playlist |
+| 1 | Cannot get queue info. Queue is empty |
 
 ## Why would I use music_player?
 
