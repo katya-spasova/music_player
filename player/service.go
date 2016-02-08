@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"encoding/json"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
@@ -53,6 +54,34 @@ type ResponseContainer struct {
 	Data []string `json:"Data,omitempty"`
 }
 
+// Writes a response
+func message(w http.ResponseWriter, container ResponseContainer) {
+	message, err1 := json.Marshal(container)
+	if err1 != nil {
+		http.Error(w, err1.Error(), http.StatusInternalServerError)
+	} else {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.WriteHeader(http.StatusOK)
+		if message != nil {
+			w.Write(message)
+		}
+	}
+}
+
+func getResponseContainer(data []string, err error) ResponseContainer {
+	container := ResponseContainer{}
+	if err != nil {
+		container.Code = 1
+		container.Message = err.Error()
+	} else {
+		container.Code = 0
+		container.Data = data
+	}
+
+	return container
+}
+
 // Shows if the service is alive
 func alive(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "I'm alive")
@@ -63,8 +92,12 @@ func alive(w http.ResponseWriter, r *http.Request) {
 // or error message if song is not found, format is unsupported or SoX cannot play the file
 func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
-	list, err := player.play(name)
-	fmt.Fprintf(w, "Playing, %s!", name)
+	data, err := player.play(name)
+	container := getResponseContainer(data, err)
+	if err == nil {
+		container.Message = started_playing_info
+	}
+	message(w, container)
 }
 
 // Pauses the current song

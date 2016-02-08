@@ -247,7 +247,7 @@ func (player *Player) play(playItem string) ([]string, error) {
 	defer close(ch)
 	if err == nil {
 		go player.playQueue(0, ch)
-		err <- ch
+		ch <- err
 	}
 	return items, err
 }
@@ -436,7 +436,7 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 		defer close(ch)
 		if err == nil {
 			go player.playQueue(0, ch)
-			err <- ch
+			ch <- err
 		}
 	} else {
 		player.Unlock()
@@ -449,10 +449,14 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 func (player *Player) stop() {
 	player.Lock()
 	defer player.Unlock()
-	player.state.chain.DeleteAll()
-	player.state.status = Waiting
-	player.state.current = 0
-	player.state.queue = make([]string, 0)
+	if player.state != nil {
+		if player.state.chain != nil {
+			player.state.chain.DeleteAll()
+		}
+		player.state.status = Waiting
+		player.state.current = 0
+		player.state.queue = make([]string, 0)
+	}
 }
 
 // Plays the next song from the queue
