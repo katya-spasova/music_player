@@ -75,7 +75,7 @@ func TestPlayDir(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3","test_sounds/beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
 
