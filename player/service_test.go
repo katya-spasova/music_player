@@ -415,3 +415,43 @@ func TestGetQueueInfoEmpty(t *testing.T) {
 	expected := `{"Code":1,"Message":"Cannot get queue info. Queue is empty"}`
 	checkResult("GET", url, expected, t)
 }
+
+func TestMessage(t *testing.T) {
+	writer := httptest.NewRecorder()
+	container := ResponseContainer{Code: 0, Message: "abc", Data: []string{"a", "b", "c"}}
+	message(writer, container)
+
+	expectedCode := 200
+	foundCode := writer.Code
+
+	if foundCode != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, foundCode)
+	}
+
+	expected := `{"Code":0,"Message":"abc","Data":["a","b","c"]}`
+	found := writer.Body.String()
+
+	if found != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
+	}
+}
+
+func TestFailMessage(t *testing.T) {
+	writer := httptest.NewRecorder()
+	container := ResponseContainer{Code: 1, Message: "abc"}
+	message(writer, container)
+
+	expectedCode := 200
+	foundCode := writer.Code
+
+	if foundCode != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, foundCode)
+	}
+
+	expected := `{"Code":1,"Message":"abc"}`
+	found := writer.Body.String()
+
+	if found != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
+	}
+}
