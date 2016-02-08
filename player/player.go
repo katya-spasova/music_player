@@ -269,7 +269,6 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 
 	switch mode := fileInfo.Mode(); {
 	case mode.IsDir():
-
 		d, err := os.Open(playItem)
 		if err != nil {
 			return nil, errors.New(file_not_found_msg)
@@ -279,10 +278,13 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 		if err != nil {
 			return nil, errors.New(file_not_found_msg)
 		}
-
+		prefix := playItem
+		if !strings.HasSuffix(playItem, "/") {
+			prefix = prefix + "/"
+		}
 		for _, file := range files {
 			if file.Mode().IsRegular() {
-				added := player.addRegularFile(file.Name())
+				added := player.addRegularFile(prefix + file.Name())
 				items = append(items, added...)
 			}
 		}

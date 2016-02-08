@@ -1,6 +1,7 @@
 package player
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -50,6 +51,7 @@ func checkResult(method, url, expected string, t *testing.T) {
 }
 
 func TestGetAlive(t *testing.T) {
+	fmt.Println("TestGetAlive")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -58,6 +60,7 @@ func TestGetAlive(t *testing.T) {
 }
 
 func TestPlay(t *testing.T) {
+	fmt.Println("TestPlay")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -67,6 +70,7 @@ func TestPlay(t *testing.T) {
 }
 
 func TestPlayDir(t *testing.T) {
+	fmt.Println("TestPlayDir")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -76,15 +80,17 @@ func TestPlayDir(t *testing.T) {
 }
 
 func TestPlayPlaylist(t *testing.T) {
+	fmt.Println("TestPlayPlaylist")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
-	url := ts.URL + "/play/" + url.QueryEscape("sample_playlist")
+	url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
 	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
 
 func TestPlayNonExistingFile(t *testing.T) {
+	fmt.Println("TestPlayNonExistingFile")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -94,6 +100,7 @@ func TestPlayNonExistingFile(t *testing.T) {
 }
 
 func TestPlayInvalidFileFormat(t *testing.T) {
+	fmt.Println("TestPlayNonExistingFile")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -103,6 +110,7 @@ func TestPlayInvalidFileFormat(t *testing.T) {
 }
 
 func TestPlayBrokenFile(t *testing.T) {
+	fmt.Println("TestPlayBrokenFile")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -112,6 +120,7 @@ func TestPlayBrokenFile(t *testing.T) {
 }
 
 func TestPause(t *testing.T) {
+	fmt.Println("TestPause")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -124,6 +133,7 @@ func TestPause(t *testing.T) {
 }
 
 func TestPauseNoPlayback(t *testing.T) {
+	fmt.Println("TestPauseNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -133,6 +143,7 @@ func TestPauseNoPlayback(t *testing.T) {
 }
 
 func TestResume(t *testing.T) {
+	fmt.Println("TestResume")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -147,6 +158,7 @@ func TestResume(t *testing.T) {
 }
 
 func TestResumeNoPlayback(t *testing.T) {
+	fmt.Println("TestResumeNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -156,6 +168,7 @@ func TestResumeNoPlayback(t *testing.T) {
 }
 
 func TestResumeNoPaused(t *testing.T) {
+	fmt.Println("TestResumeNoPaused")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -168,6 +181,7 @@ func TestResumeNoPaused(t *testing.T) {
 }
 
 func TestStop(t *testing.T) {
+	fmt.Println("TestStop")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -180,6 +194,7 @@ func TestStop(t *testing.T) {
 }
 
 func TestStopNoPlayback(t *testing.T) {
+	fmt.Println("TestStopNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -189,6 +204,7 @@ func TestStopNoPlayback(t *testing.T) {
 }
 
 func TestStopPaused(t *testing.T) {
+	fmt.Println("TestStopPaused")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -203,6 +219,7 @@ func TestStopPaused(t *testing.T) {
 }
 
 func TestNext(t *testing.T) {
+	fmt.Println("TestNext")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -215,6 +232,7 @@ func TestNext(t *testing.T) {
 }
 
 func TestNextNoNext(t *testing.T) {
+	fmt.Println("TestNextNoNext")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -227,6 +245,7 @@ func TestNextNoNext(t *testing.T) {
 }
 
 func TestNextNoPlayback(t *testing.T) {
+	fmt.Println("TestNextNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -236,6 +255,7 @@ func TestNextNoPlayback(t *testing.T) {
 }
 
 func TestPrevious(t *testing.T) {
+	fmt.Println("TestPrevious")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -250,6 +270,7 @@ func TestPrevious(t *testing.T) {
 }
 
 func TestPreviousNoPrevious(t *testing.T) {
+	fmt.Println("TestPreviousNoPrevious")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -262,6 +283,7 @@ func TestPreviousNoPrevious(t *testing.T) {
 }
 
 func TestPreviousNoPlayback(t *testing.T) {
+	fmt.Println("TestPreviousNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -271,6 +293,7 @@ func TestPreviousNoPlayback(t *testing.T) {
 }
 
 func TestGetCurrentSongInfo(t *testing.T) {
+	fmt.Println("TestGetCurrentSongInfo")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -283,6 +306,7 @@ func TestGetCurrentSongInfo(t *testing.T) {
 }
 
 func TestGetCurrentSongInfoNoPlayback(t *testing.T) {
+	fmt.Println("TestGetCurrentSongInfoNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -292,6 +316,7 @@ func TestGetCurrentSongInfoNoPlayback(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
+	fmt.Println("TestAdd")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -301,6 +326,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestAddDir(t *testing.T) {
+	fmt.Println("TestAddDir")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -310,6 +336,7 @@ func TestAddDir(t *testing.T) {
 }
 
 func TestAddPlaylist(t *testing.T) {
+	fmt.Println("TestAddPlaylist")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -319,6 +346,7 @@ func TestAddPlaylist(t *testing.T) {
 }
 
 func TestAddNonExistingFile(t *testing.T) {
+	fmt.Println("TestAddNonExistingFile")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -328,6 +356,7 @@ func TestAddNonExistingFile(t *testing.T) {
 }
 
 func TestAddInvalidFileFormat(t *testing.T) {
+	fmt.Println("TestAddInvalidFileFormat")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -337,6 +366,7 @@ func TestAddInvalidFileFormat(t *testing.T) {
 }
 
 func TestAddWithAvailableQueue(t *testing.T) {
+	fmt.Println("TestAddWithAvailableQueue")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -349,6 +379,7 @@ func TestAddWithAvailableQueue(t *testing.T) {
 }
 
 func TestSaveAsPlaylist(t *testing.T) {
+	fmt.Println("TestSaveAsPlaylist")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -361,6 +392,7 @@ func TestSaveAsPlaylist(t *testing.T) {
 }
 
 func TestSaveAsPlaylistNoPlayback(t *testing.T) {
+	fmt.Println("TestSaveAsPlaylistNoPlayback")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -370,6 +402,7 @@ func TestSaveAsPlaylistNoPlayback(t *testing.T) {
 }
 
 func TestSaveAsPlaylistWrongName(t *testing.T) {
+	fmt.Println("TestSaveAsPlaylistWrongName")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -382,6 +415,7 @@ func TestSaveAsPlaylistWrongName(t *testing.T) {
 }
 
 func TestListPlaylists(t *testing.T) {
+	fmt.Println("TestListPlaylists")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -396,6 +430,7 @@ func TestListPlaylists(t *testing.T) {
 }
 
 func TestGetQueueInfo(t *testing.T) {
+	fmt.Println("TestGetQueueInfo")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -408,6 +443,7 @@ func TestGetQueueInfo(t *testing.T) {
 }
 
 func TestGetQueueInfoEmpty(t *testing.T) {
+	fmt.Println("TestGetQueueInfoEmpty")
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
@@ -417,6 +453,7 @@ func TestGetQueueInfoEmpty(t *testing.T) {
 }
 
 func TestMessage(t *testing.T) {
+	fmt.Println("TestMessage")
 	writer := httptest.NewRecorder()
 	container := ResponseContainer{Code: 0, Message: "abc", Data: []string{"a", "b", "c"}}
 	message(writer, container)
@@ -437,6 +474,7 @@ func TestMessage(t *testing.T) {
 }
 
 func TestFailMessage(t *testing.T) {
+	fmt.Println("TestFailMessage")
 	writer := httptest.NewRecorder()
 	container := ResponseContainer{Code: 1, Message: "abc"}
 	message(writer, container)
