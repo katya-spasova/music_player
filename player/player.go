@@ -247,7 +247,7 @@ func (player *Player) play(playItem string) ([]string, error) {
 	defer close(ch)
 	if err == nil {
 		go player.playQueue(0, ch)
-		ch <- err
+		err = <-ch
 	}
 	return items, err
 }
@@ -436,7 +436,7 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 		defer close(ch)
 		if err == nil {
 			go player.playQueue(0, ch)
-			ch <- err
+			err = <-ch
 		}
 	} else {
 		player.Unlock()
