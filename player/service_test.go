@@ -1,11 +1,13 @@
 package player
 
 import (
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -452,11 +454,11 @@ func TestGetQueueInfoEmpty(t *testing.T) {
 	checkResult("GET", url, expected, t)
 }
 
-func TestMessage(t *testing.T) {
-	fmt.Println("TestMessage")
+func TestWriteHttpResponse(t *testing.T) {
+	fmt.Println("TestWriteHttpResponse")
 	writer := httptest.NewRecorder()
 	container := ResponseContainer{Code: 0, Message: "abc", Data: []string{"a", "b", "c"}}
-	message(writer, container)
+	writeHttpResponse(writer, container)
 
 	expectedCode := 200
 	foundCode := writer.Code
@@ -473,11 +475,11 @@ func TestMessage(t *testing.T) {
 	}
 }
 
-func TestFailMessage(t *testing.T) {
-	fmt.Println("TestFailMessage")
+func TestFailWriteHttpResponse(t *testing.T) {
+	fmt.Println("TestFailWriteHttpResponse")
 	writer := httptest.NewRecorder()
 	container := ResponseContainer{Code: 1, Message: "abc"}
-	message(writer, container)
+	writeHttpResponse(writer, container)
 
 	expectedCode := 200
 	foundCode := writer.Code
@@ -487,6 +489,93 @@ func TestFailMessage(t *testing.T) {
 	}
 
 	expected := `{"Code":1,"Message":"abc"}`
+	found := writer.Body.String()
+
+	if found != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
+	}
+}
+
+func TestGetResponseContainerError(t *testing.T) {
+	fmt.Println("TestGetResponseContainerError")
+	data := []string{"a", "b", "c"}
+	err := errors.New("Error message")
+
+	container := getResponseContainer(data, err)
+
+	if container.Data != nil {
+		t.Errorf("Expected\n---\nnil\n---\nbut found\n---\n%v\n---\n", container.Data)
+	}
+
+	expected := "Error Message"
+	if container.Message != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, container.Message)
+	}
+
+	expectedCode := 1
+	if container.Code != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, container.Code)
+	}
+}
+
+func TestGetResponseContainer(t *testing.T) {
+	fmt.Println("TestGetResponseContainer")
+
+	data := []string{"a", "b", "c"}
+	var err error = nil
+
+	container := getResponseContainer(data, err)
+
+	if !reflect.DeepEqual(container.Data, data) {
+		t.Errorf("Expected\n---\n%v\n---\nbut found\n---\n%v\n---\n", data, container.Data)
+	}
+
+	expected := ""
+	if container.Message != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, container.Message)
+	}
+
+	expectedCode := 0
+	if container.Code != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, container.Code)
+	}
+}
+
+func TestPlayerToServiceResponse(t *testing.T) {
+	fmt.Println("TestPlayerToServiceResponse")
+	writer := httptest.NewRecorder()
+
+	playerToServiceResponse(writer, []string{"a", "b", "c"}, nil, "Success Message")
+
+	expectedCode := 200
+	foundCode := writer.Code
+
+	if foundCode != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, foundCode)
+	}
+
+	expected := `{"Code":0,"Message":"Success Message","Data":["a","b","c"]}`
+	found := writer.Body.String()
+
+	if found != expected {
+		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
+	}
+}
+
+func TestPlayerToServiceResponseError(t *testing.T) {
+	fmt.Println("TestPlayerToServiceResponseError")
+	writer := httptest.NewRecorder()
+
+	playerToServiceResponse(writer, []string{"a", "b", "c"}, errors.New("Error"), "Success Message")
+
+	expectedCode := 200
+	foundCode := writer.Code
+
+	if foundCode != expectedCode {
+		t.Errorf("Expected\n---\n%d\n---\nbut found\n---\n%d\n---\n", expectedCode, foundCode)
+	}
+
+	expected := `{"Code":1,"Message":"Error"}`
 	found := writer.Body.String()
 
 	if found != expected {

@@ -157,12 +157,11 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
-		if player.wg != nil {
-			player.wg.Done()
-		}
+		//		if player.wg != nil {
+		//			player.wg.Done()
+		//		}
 		return errors.New(no_sox_in_msg)
 	}
-	player.state.in = in
 
 	// Open the output device: Specify the output signal characteristics.
 	// Since we are using only simple effects, they are the same as the
@@ -186,12 +185,10 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 			}
 		}
 	}
-	player.state.out = out
 
 	// Create an effects chain: Some effects need to know about the
 	// input or output encoding so we provide that information here.
 	chain := sox.CreateEffectsChain(in.Encoding(), out.Encoding())
-	player.state.chain = chain
 
 	// The first effect in the effect chain must be something that can
 	// source samples; in this case, we use the built-in handler that
@@ -218,17 +215,25 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	chain.Add(e, in.Signal(), in.Signal())
 	e.Release()
 
+	player.Lock()
+
+	player.state.in = in
+	player.state.out = out
+	player.state.chain = chain
 	player.state.status = Playing
 	player.state.startTime = time.Now()
+	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
-	go func(wg *sync.WaitGroup) {
-		chain.Flow()
-		if wg != nil {
-			wg.Done()
-		}
-		player.state.status = Waiting
-	}(player.wg)
+	//	go func(wg *sync.WaitGroup) {
+	chain.Flow()
+	player.Lock()
+	player.state.status = Waiting
+	player.Unlock()
+	//		if wg != nil {
+	//			wg.Done()
+	//		}
+	//	}(player.wg)
 
 	return nil
 }

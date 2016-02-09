@@ -55,7 +55,7 @@ type ResponseContainer struct {
 }
 
 // Writes a response
-func message(w http.ResponseWriter, container ResponseContainer) {
+func writeHttpResponse(w http.ResponseWriter, container ResponseContainer) {
 	message, err1 := json.Marshal(container)
 	if err1 != nil {
 		http.Error(w, err1.Error(), http.StatusInternalServerError)
@@ -69,6 +69,7 @@ func message(w http.ResponseWriter, container ResponseContainer) {
 	}
 }
 
+// Wraps data and error in ResponseContainer
 func getResponseContainer(data []string, err error) ResponseContainer {
 	container := ResponseContainer{}
 	if err != nil {
@@ -87,37 +88,44 @@ func alive(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "I'm alive")
 }
 
+func playerToServiceResponse(w http.ResponseWriter, data []string, err error, successMessage string) {
+	container := getResponseContainer(data, err)
+	if err == nil {
+		container.Message = successMessage
+	}
+	writeHttpResponse(w, container)
+}
+
 // Starts playing a file, files from directory or a playlist immediately - current queue is cleared
 // The result json contains the names of the files to be played
 // or error message if song is not found, format is unsupported or SoX cannot play the file
 func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
 	data, err := player.play(name)
-	container := getResponseContainer(data, err)
-	if err == nil {
-		container.Message = started_playing_info
-	}
-	message(w, container)
+	playerToServiceResponse(w, data, err, started_playing_info)
 }
 
 // Pauses the current song
 // The result json contains the filename of the paused song
 // or error message if no song is playing at the moment
 func pause(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.pause()
+	playerToServiceResponse(w, []string{data}, err, paused_song_info)
 }
 
 // Resumes paused song
 // The result json contains the filename of the running song
 // or error message if no song was paused
 func resume(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.resume()
+	playerToServiceResponse(w, []string{data}, err, resume_song_info)
 }
 
 // Stops the playback - playing queue is cleared i.e. playback cannot be resumed
 // The result json contains message that playback is stopped
 func stop(w http.ResponseWriter, r *http.Request) {
-
+	player.stop()
+	playerToServiceResponse(w, []string{}, nil, playback_stopped_info)
 }
 
 // Starts playing the next from the queue
@@ -125,7 +133,8 @@ func stop(w http.ResponseWriter, r *http.Request) {
 // The result json contains the filename of the running song
 // or error message if there is no next song
 func next(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.next()
+	playerToServiceResponse(w, []string{data}, err, started_playing_info)
 }
 
 // Starts playing the previous from the queue
@@ -133,14 +142,16 @@ func next(w http.ResponseWriter, r *http.Request) {
 // The result json contains the filename of the running song
 // or error message if there is no previous song
 func previous(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.previous()
+	playerToServiceResponse(w, []string{data}, err, started_playing_info)
 }
 
 // Gets the filename of the current song
 // The result json contains the filename of the running song
 // or error message if no song is playing at the moment
 func getCurrentSongInfo(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.getQueueInfo()
+	playerToServiceResponse(w, data, err, current_song_info)
 }
 
 // Add a song, directory or playlist to the play queue - songs will be played after all others in the queue
@@ -149,8 +160,8 @@ func getCurrentSongInfo(w http.ResponseWriter, r *http.Request) {
 // or error message if song is not found, format is unsupported or Sox cannot play the file
 func addToQueue(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	filename := pat.Param(ctx, "name")
-	// todo: add to queue instead and return json
-	fmt.Fprintf(w, "Adding , %s!", filename)
+	data, err := player.addToQueue(filename)
+	playerToServiceResponse(w, data, err, added_to_queue_info)
 }
 
 // Saves the current queue as a playlist
@@ -158,22 +169,24 @@ func addToQueue(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 // or error message if queue is empty or playlist cannot be saved
 func saveAsPlaylist(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
-	// todo: save the playlist instead and return json
-	fmt.Fprintf(w, "Saving playlist , %s!", name)
+	data, err := player.saveAsPlaylist(name)
+	playerToServiceResponse(w, []string{data}, err, queue_saved_as_playlist)
 }
 
 // List the saved playlists
 // The result json contains the filenames of the already saved playlists
 // or error message of no playlists exit
 func listPlaylists(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.listPlaylists()
+	playerToServiceResponse(w, data, err, playlists_info)
 }
 
 // Displays all songs in the queue
 // The result json contains all filenames in the current queue
 // or an error message if queue is empty
 func getQueueInfo(w http.ResponseWriter, r *http.Request) {
-
+	data, err := player.getQueueInfo()
+	playerToServiceResponse(w, data, err, queue_info)
 }
 
 var player Player

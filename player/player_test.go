@@ -1,7 +1,7 @@
 package player
 
 import (
-	"sync"
+	//	"sync"
 	"testing"
 	"time"
 )
@@ -16,13 +16,14 @@ func TestInit(t *testing.T) {
 }
 
 func TestPlaySingleFile(t *testing.T) {
-	wg := sync.WaitGroup{}
-	player = Player{wg: &wg}
+	//	wg := sync.WaitGroup{}
+	//	player = Player{wg: &wg}
+	player = Player{}
 	err := player.init()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	wg.Add(1)
+	//	wg.Add(1)
 	if player.state.status != Waiting {
 		t.Errorf("Expected to status Waiting \n---\n%d\n---\nbut found \n---\n%f\n---\n", Waiting, player.state.status)
 	}
@@ -31,7 +32,7 @@ func TestPlaySingleFile(t *testing.T) {
 	if player.state.status != Playing {
 		t.Errorf("Expected to status Playing \n---\n%d\n---\nbut found \n---\n%f\n---\n", Playing, player.state.status)
 	}
-	wg.Wait()
+	//	wg.Wait()
 	duration := time.Since(start)
 	expected := 0.9
 	if duration.Seconds() < 0.9 {
