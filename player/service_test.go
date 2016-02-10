@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func performCall(method string, url string) (string, error) {
@@ -50,6 +51,8 @@ func checkResult(method, url, expected string, t *testing.T) {
 	if found != expected {
 		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
 	}
+	// wait for a little while before clearing player
+	time.Sleep(1 * time.Millisecond)
 }
 
 func TestGetAlive(t *testing.T) {

@@ -157,9 +157,9 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
-		//		if player.wg != nil {
-		//			player.wg.Done()
-		//		}
+		if player.wg != nil {
+			player.wg.Done()
+		}
 		return errors.New(no_sox_in_msg)
 	}
 
@@ -225,15 +225,15 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
-	//	go func(wg *sync.WaitGroup) {
-	chain.Flow()
-	player.Lock()
-	player.state.status = Waiting
-	player.Unlock()
-	//		if wg != nil {
-	//			wg.Done()
-	//		}
-	//	}(player.wg)
+	go func(wg *sync.WaitGroup) {
+		chain.Flow()
+		if wg != nil {
+			wg.Done()
+		}
+		player.Lock()
+		player.state.status = Waiting
+		player.Unlock()
+	}(player.wg)
 
 	return nil
 }
@@ -264,10 +264,11 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 	fileInfo, err := os.Stat(playItem)
 	if os.IsNotExist(err) {
 		//try it for a playlist
-		fileInfo, err = os.Stat(playlistsDir + playItem + playlistsExtension)
+		fileInfo, err = os.Stat(playlistsDir + playItem)
 		if os.IsNotExist(err) {
 			return nil, errors.New(file_not_found_msg)
 		}
+		playItem = playlistsDir + playItem
 	}
 
 	items := make([]string, 0)
@@ -316,7 +317,7 @@ func (player *Player) addRegularFile(playItem string) []string {
 			for scanner.Scan() {
 				line := scanner.Text()
 				if len(line) > 0 && !strings.HasPrefix(line, "#") {
-					name, err := player.addFile(playItem)
+					name, err := player.addFile(line)
 					// if file is not suported - simply skip it
 					if err == nil {
 						items = append(items, name)
