@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"strings"
 	"testing"
-	"time"
 )
 
 func performCall(method string, url string) (string, error) {
@@ -52,7 +51,7 @@ func checkResult(method, url, expected string, t *testing.T) {
 		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
 	}
 	// wait for a little while before clearing player
-	time.Sleep(1 * time.Millisecond)
+	//	time.Sleep(10 * time.Millisecond)
 }
 
 func TestGetAlive(t *testing.T) {
@@ -119,7 +118,7 @@ func TestPlayBrokenFile(t *testing.T) {
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
-	url := ts.URL + "/play/" + url.QueryEscape("test_broken/abc.txt")
+	url := ts.URL + "/play/" + url.QueryEscape("test_broken/no_music.mp3")
 	expected := `{"Code":1,"Message":"SoX failed to open input file"}`
 	checkResult("PUT", url, expected, t)
 }

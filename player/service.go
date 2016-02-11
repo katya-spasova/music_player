@@ -8,6 +8,7 @@ import (
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
+	"sync"
 )
 
 // Success and error codes
@@ -103,6 +104,7 @@ func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
 	data, err := player.play(name)
 	playerToServiceResponse(w, data, err, started_playing_info)
+	fmt.Println("response is written")
 }
 
 // Pauses the current song
@@ -192,7 +194,7 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 var player Player
 
 func initService() *goji.Mux {
-	player = Player{}
+	player = Player{clearMutex: &sync.Mutex{}}
 	player.init()
 
 	// service handle functions

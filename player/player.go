@@ -96,9 +96,10 @@ var supportedExtensions []string = []string{
 }
 
 type Player struct {
-	wg *sync.WaitGroup
+	//	wg *sync.WaitGroup
 	sync.Mutex
-	state *State
+	state      *State
+	clearMutex *sync.Mutex
 }
 
 // InOut struct holds the state of the player
@@ -117,6 +118,7 @@ const (
 	Playing = iota
 	Paused
 	Waiting
+	Cleared
 )
 
 // Starts sox and the initialises player's state
@@ -136,6 +138,8 @@ func (player *Player) init() error {
 // Clears resources
 func (player *Player) clear() {
 	player.Lock()
+	player.clearMutex.Lock()
+	defer player.clearMutex.Unlock()
 	defer player.Unlock()
 	sox.Quit()
 	if player.state.in != nil {
@@ -149,18 +153,21 @@ func (player *Player) clear() {
 	if player.state.chain != nil {
 		player.state.chain.Release()
 	}
+
+	player.state.status = Cleared
 }
 
 // Plays single file
 // Returns error if file could not be played
-func (player *Player) playSingleFile(filename string, trim float64) error {
+func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
-		if player.wg != nil {
-			player.wg.Done()
+		err := errors.New(no_sox_in_msg)
+		if ch != nil {
+			ch <- err
 		}
-		return errors.New(no_sox_in_msg)
+		return err
 	}
 
 	// Open the output device: Specify the output signal characteristics.
@@ -177,13 +184,18 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 			if out == nil {
 				out = sox.OpenWrite("default", in.Signal(), nil, "waveaudio")
 				if out == nil {
-					if player.wg != nil {
-						player.wg.Done()
+					err := errors.New(no_sox_out_msg)
+					if ch != nil {
+						ch <- err
 					}
-					return errors.New(no_sox_out_msg)
+					return err
 				}
 			}
 		}
+	}
+
+	if ch != nil {
+		ch <- nil
 	}
 
 	// Create an effects chain: Some effects need to know about the
@@ -216,7 +228,6 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	e.Release()
 
 	player.Lock()
-
 	player.state.in = in
 	player.state.out = out
 	player.state.chain = chain
@@ -224,16 +235,16 @@ func (player *Player) playSingleFile(filename string, trim float64) error {
 	player.state.startTime = time.Now()
 	player.Unlock()
 
+	player.clearMutex.Lock()
 	// Flow samples through the effects processing chain until EOF is reached.
-	go func(wg *sync.WaitGroup) {
+	if player.state.status == Playing {
 		chain.Flow()
-		if wg != nil {
-			wg.Done()
-		}
-		player.Lock()
-		player.state.status = Waiting
-		player.Unlock()
-	}(player.wg)
+	}
+	player.clearMutex.Unlock()
+
+	player.Lock()
+	player.state.status = Waiting
+	player.Unlock()
 
 	return nil
 }
@@ -369,26 +380,32 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 	for play {
 		var fileName string
 		player.Lock()
-		index := player.state.current
-		if index < len(player.state.queue) {
-			fileName = player.state.queue[index]
-		} else {
+		if player.state.status == Paused {
 			play = false
-			player.state.current = 0
-			player.state.status = Waiting
+		} else {
+			index := player.state.current
+			if index < len(player.state.queue) {
+				fileName = player.state.queue[index]
+			} else {
+				play = false
+				player.state.current = 0
+				player.state.status = Waiting
+			}
 		}
 		player.Unlock()
 
 		if play && len(fileName) > 0 {
-			err := player.playSingleFile(fileName, trim)
 			if first {
 				first = false
-				ch <- err
+				player.playSingleFile(fileName, trim, ch)
+			} else {
+				player.playSingleFile(fileName, trim, nil)
 			}
+
+			player.Lock()
+			player.state.current += 1
+			player.Unlock()
 		}
-		player.Lock()
-		player.state.current += 1
-		player.Unlock()
 	}
 }
 
@@ -415,6 +432,7 @@ func (player *Player) resume() (string, error) {
 	player.Lock()
 
 	if player.state.status != Paused {
+		player.Unlock()
 		return "", errors.New(cannot_pause_msg)
 	}
 

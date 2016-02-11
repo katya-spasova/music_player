@@ -1,13 +1,14 @@
 package player
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 	"time"
 )
 
 func TestInit(t *testing.T) {
-	player = Player{}
+	player = Player{clearMutex: &sync.Mutex{}}
 	err := player.init()
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -16,30 +17,25 @@ func TestInit(t *testing.T) {
 }
 
 func TestPlaySingleFile(t *testing.T) {
-	wg := sync.WaitGroup{}
-	player = Player{wg: &wg}
+	player = Player{clearMutex: &sync.Mutex{}}
 	err := player.init()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	wg.Add(1)
 	if player.state.status != Waiting {
-		t.Errorf("Expected to status Waiting \n---\n%d\n---\nbut found \n---\n%d\n---\n", Waiting, player.state.status)
+		t.Errorf("Expected status Waiting \n---\n%d\n---\nbut found \n---\n%d\n---\n", Waiting, player.state.status)
 	}
 	start := time.Now()
-	player.playSingleFile("test_sounds/beep9.mp3", 0)
-	if player.state.status != Playing {
-		t.Errorf("Expected to status Playing \n---\n%d\n---\nbut found \n---\n%d\n---\n", Playing, player.state.status)
-	}
-	wg.Wait()
+	player.playSingleFile("test_sounds/beep9.mp3", 0, nil)
 	duration := time.Since(start)
 	expected := 0.9
 	if duration.Seconds() < 0.9 {
 		t.Errorf("Expected to play for at least\n---\n%d\n---\nbut played\n---\n%d\n---\n", expected,
 			duration.Seconds())
 	}
+	fmt.Println(player.state.status)
 	if player.state.status != Waiting {
-		t.Errorf("Expected to status Waiting \n---\n%d\n---\nbut found \n---\n%d\n---\n", Waiting, player.state.status)
+		t.Errorf("Expected status Waiting \n---\n%d\n---\nbut found \n---\n%d\n---\n", Waiting, player.state.status)
 	}
 	player.clear()
 }
