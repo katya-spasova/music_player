@@ -193,7 +193,7 @@ func TestStop(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/stop"
-	expected := `{"Code":0,"Message":"Playback is stopped and cleaned","Data":[]}`
+	expected := `{"Code":0,"Message":"Playback is stopped and cleaned"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -203,7 +203,7 @@ func TestStopNoPlayback(t *testing.T) {
 	defer ts.Close()
 	defer clearPlayer()
 	url := ts.URL + "/stop"
-	expected := `{"Code":0,"Message":"Playback is stopped and cleaned","Data":[]}`
+	expected := `{"Code":0,"Message":"Playback is stopped and cleaned"}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -218,7 +218,7 @@ func TestStopPaused(t *testing.T) {
 	performCall("PUT", pause_url)
 
 	url := ts.URL + "/stop"
-	expected := `{"Code":0,"Message":"Playback is stopped and cleaned","Data":[]}`
+	expected := `{"Code":0,"Message":"Playback is stopped and cleaned"}`
 	checkResult("PUT", url, expected, t)
 }
 
