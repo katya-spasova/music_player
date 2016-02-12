@@ -154,7 +154,7 @@ func TestResume(t *testing.T) {
 	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	pause_url := ts.URL + "/pause"
-	performCall("PUT", pause_url)
+	performCall("POST", pause_url)
 
 	url := ts.URL + "/resume"
 	expected := `{"Code":0,"Message":"Song is resumed","Data":["test_sounds/beep28.mp3"]}`

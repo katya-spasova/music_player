@@ -4,6 +4,7 @@ import "github.com/krig/go-sox"
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"os"
 	"strings"
 	"sync"
@@ -137,10 +138,18 @@ func (player *Player) init() error {
 
 // Clears resources
 func (player *Player) clear() {
-	player.Lock()
 	player.clearMutex.Lock()
-	defer player.clearMutex.Unlock()
-	defer player.Unlock()
+	fmt.Println("Clear clearMutex lock")
+	player.Lock()
+	//	fmt.Println("Clear lock")
+	defer func() {
+		player.Unlock()
+		//		fmt.Println("clear unlock")
+	}()
+	defer func() {
+		player.clearMutex.Unlock()
+		fmt.Println("clear clearMutex unlock")
+	}()
 	sox.Quit()
 	if player.state.in != nil {
 		player.state.in.Release()
@@ -227,24 +236,35 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	chain.Add(e, in.Signal(), in.Signal())
 	e.Release()
 
+	//	fmt.Println("play single try to lock")
 	player.Lock()
+	//	fmt.Println("play single locked")
 	player.state.in = in
 	player.state.out = out
 	player.state.chain = chain
 	player.state.status = Playing
 	player.state.startTime = time.Now()
 	player.Unlock()
+	//	fmt.Println("play single unlock")
 
+	fmt.Println("play single try to locl clearMutex")
 	player.clearMutex.Lock()
+	fmt.Println("playSingle clearMutex lock")
 	// Flow samples through the effects processing chain until EOF is reached.
 	if player.state.status == Playing {
 		chain.Flow()
 	}
 	player.clearMutex.Unlock()
+	fmt.Println("playSingle clearMutex unlock")
 
+	//	fmt.Println("try to lock")
 	player.Lock()
-	player.state.status = Waiting
+	//	fmt.Println("locked")
+	if player.state.status == Playing {
+		player.state.status = Waiting
+	}
 	player.Unlock()
+	//	fmt.Println("unlocked")
 
 	return nil
 }
@@ -254,9 +274,11 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 func (player *Player) play(playItem string) ([]string, error) {
 	player.stop()
 	player.Lock()
+	//	fmt.Println("play lock")
 
 	items, err := player.addPlayItem(playItem)
 	player.Unlock()
+	//	fmt.Print("play unlock")
 
 	// play all items
 	ch := make(chan error)
@@ -380,7 +402,9 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 	for play {
 		var fileName string
 		player.Lock()
-		if player.state.status == Paused {
+		//		fmt.Println("playQueue locked")
+		fmt.Println("player status is ", player.state.status)
+		if player.state.status == Paused || player.state.status == Cleared {
 			play = false
 		} else {
 			index := player.state.current
@@ -393,18 +417,27 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 			}
 		}
 		player.Unlock()
+		//		fmt.Println("playQueue unlocked")
 
 		if play && len(fileName) > 0 {
+			fmt.Println("play queue - song to be played ", fileName)
 			if first {
 				first = false
+				fmt.Println("play with channel")
 				player.playSingleFile(fileName, trim, ch)
 			} else {
+				fmt.Println("play without channel")
 				player.playSingleFile(fileName, trim, nil)
 			}
 
 			player.Lock()
-			player.state.current += 1
+			//			fmt.Println("playQueue locked 2")
+			if player.state.status == Waiting {
+				player.state.current += 1
+			}
 			player.Unlock()
+			//			fmt.Println("playQueue unlocked 2")
+
 		}
 	}
 }
@@ -415,7 +448,10 @@ func (player *Player) pause() (string, error) {
 	player.Lock()
 	defer player.Unlock()
 
+	fmt.Println("In pause")
+
 	if player.state.status != Playing {
+		fmt.Println("cannot pause")
 		return "", errors.New(cannot_pause_msg)
 	}
 
@@ -423,6 +459,7 @@ func (player *Player) pause() (string, error) {
 	player.state.durationPaused = time.Since(player.state.startTime)
 	player.state.status = Paused
 
+	fmt.Println("paused")
 	return player.state.queue[player.state.current], nil
 }
 
@@ -433,11 +470,14 @@ func (player *Player) resume() (string, error) {
 
 	if player.state.status != Paused {
 		player.Unlock()
-		return "", errors.New(cannot_pause_msg)
+		return "", errors.New(cannot_resume_msg)
 	}
 
+	fmt.Println("size of queue ", len(player.state.queue))
+	fmt.Println("current ", player.state.current)
 	songToResume := player.state.queue[player.state.current]
 	pausedDuration := player.state.durationPaused
+	player.state.status = Waiting
 	player.Unlock()
 
 	ch := make(chan error)
@@ -489,10 +529,12 @@ func (player *Player) stop() {
 // Returns the name of the song or error if there is no next song
 func (player *Player) next() (string, error) {
 	player.Lock()
+	fmt.Println("Calling next")
 	var songToResume string
 	if player.state.current < len(player.state.queue)-1 {
-		player.state.current += 1
 		player.state.chain.DeleteAll()
+		player.state.current += 1
+		player.state.status = Paused
 		songToResume = player.state.queue[player.state.current]
 
 	} else {
@@ -515,8 +557,9 @@ func (player *Player) previous() (string, error) {
 	player.Lock()
 	var songToResume string
 	if player.state.current > 0 {
-		player.state.current -= 1
 		player.state.chain.DeleteAll()
+		player.state.current -= 1
+		player.state.status = Paused
 		songToResume = player.state.queue[player.state.current]
 	} else {
 		player.Unlock()
