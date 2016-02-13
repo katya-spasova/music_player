@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+	"time"
 )
 
 func performCall(method string, url string) (string, error) {
@@ -153,9 +154,9 @@ func TestResume(t *testing.T) {
 	defer clearPlayer()
 	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
+	time.Sleep(1 * time.Second)
 	pause_url := ts.URL + "/pause"
 	performCall("POST", pause_url)
-
 	url := ts.URL + "/resume"
 	expected := `{"Code":0,"Message":"Song is resumed","Data":["test_sounds/beep28.mp3"]}`
 	checkResult("POST", url, expected, t)
