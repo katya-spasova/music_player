@@ -152,8 +152,8 @@ func previous(w http.ResponseWriter, r *http.Request) {
 // The result json contains the filename of the running song
 // or error message if no song is playing at the moment
 func getCurrentSongInfo(w http.ResponseWriter, r *http.Request) {
-	data, err := player.getQueueInfo()
-	playerToServiceResponse(w, data, err, current_song_info)
+	data, err := player.getCurrentSongInfo()
+	playerToServiceResponse(w, []string{data}, err, current_song_info)
 }
 
 // Add a song, directory or playlist to the play queue - songs will be played after all others in the queue

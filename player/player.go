@@ -141,17 +141,9 @@ func (player *Player) init() error {
 // Clears resources
 func (player *Player) clear() {
 	player.clearMutex.Lock()
-	fmt.Println("Clear clearMutex lock")
 	player.Lock()
-	//	fmt.Println("Clear lock")
-	defer func() {
-		player.Unlock()
-		//		fmt.Println("clear unlock")
-	}()
-	defer func() {
-		player.clearMutex.Unlock()
-		fmt.Println("clear clearMutex unlock")
-	}()
+	defer player.Unlock()
+	defer player.clearMutex.Unlock()
 	sox.Quit()
 	player.state.status = Cleared
 }
@@ -160,6 +152,8 @@ func (player *Player) clear() {
 // Returns error if file could not be played
 func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
 	// Open the input file (with default parameters)
+	player.clearMutex.Lock()
+	defer player.clearMutex.Unlock()
 	in := sox.OpenRead(filename)
 	if in == nil {
 		err := errors.New(no_sox_in_msg)
@@ -214,7 +208,6 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 		interm_signal := in.Signal().Copy()
 
 		e = sox.CreateEffect(sox.FindEffect("trim"))
-		fmt.Println("trim is ", strconv.FormatFloat(trim, 'f', 2, 64))
 		e.Options(strconv.FormatFloat(trim, 'f', 2, 64))
 		chain.Add(e, interm_signal, in.Signal())
 		e.Release()
@@ -227,34 +220,26 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	chain.Add(e, in.Signal(), in.Signal())
 	e.Release()
 
-	//	fmt.Println("play single try to lock")
 	player.Lock()
-	//	fmt.Println("play single locked")
 	player.state.in = in
 	player.state.out = out
 	player.state.chain = chain
 	player.state.status = Playing
 	player.state.startTime = time.Now()
 	player.Unlock()
-	//	fmt.Println("play single unlock")
 
-	fmt.Println("play single try to locl clearMutex")
-	player.clearMutex.Lock()
-	fmt.Println("playSingle clearMutex lock")
 	// Flow samples through the effects processing chain until EOF is reached.
+	fmt.Println("Before flow")
 	chain.Flow()
 	fmt.Println("After flow")
-	player.clearMutex.Unlock()
-	fmt.Println("playSingle clearMutex unlock")
 
-	//	fmt.Println("try to lock")
 	player.Lock()
-	//	fmt.Println("locked")
 	if player.state.status == Playing {
 		player.state.status = Waiting
 	}
+	player.release()
+
 	player.Unlock()
-	//	fmt.Println("unlocked")
 
 	return nil
 }
@@ -264,11 +249,9 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 func (player *Player) play(playItem string) ([]string, error) {
 	player.stop()
 	player.Lock()
-	//	fmt.Println("play lock")
 
 	items, err := player.addPlayItem(playItem)
 	player.Unlock()
-	//	fmt.Print("play unlock")
 
 	// play all items
 	ch := make(chan error)
@@ -388,6 +371,7 @@ func isSupportedType(fileName string) bool {
 // Trims the song if it was paused
 func (player *Player) playQueue(trim float64, ch chan error) {
 	player.playQueueMutex.Lock()
+	defer player.playQueueMutex.Unlock()
 	play := true
 	first := true
 	player.Lock()
@@ -396,8 +380,6 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 	for play {
 		var fileName string
 		player.Lock()
-		//		fmt.Println("playQueue locked")
-		fmt.Println("player status is ", player.state.status)
 		if player.state.status == Paused || player.state.status == Cleared {
 			play = false
 		} else {
@@ -411,32 +393,24 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 			}
 		}
 		player.Unlock()
-		//		fmt.Println("playQueue unlocked")
 
 		if play && len(fileName) > 0 {
 			fmt.Println("play queue - song to be played ", fileName)
 			if first {
 				first = false
-				fmt.Println("play with channel")
 				player.playSingleFile(fileName, trim, ch)
 			} else {
-				fmt.Println("play without channel")
 				player.playSingleFile(fileName, trim, nil)
 			}
 			trim = 0
 
 			player.Lock()
-			//			fmt.Println("playQueue locked 2")
 			if player.state.status == Waiting {
 				player.state.current += 1
 			}
-			player.release()
 			player.Unlock()
-			//			fmt.Println("playQueue unlocked 2")
 		}
 	}
-	player.playQueueMutex.Unlock()
-	fmt.Println("End of play queue")
 }
 
 func (player *Player) release() {
@@ -459,14 +433,10 @@ func (player *Player) pause() (string, error) {
 	player.Lock()
 	defer player.Unlock()
 
-	fmt.Println("In pause")
-
 	if player.state.status != Playing {
-		fmt.Println("cannot pause")
 		return "", errors.New(cannot_pause_msg)
 	}
 	player.stopFlow()
-	fmt.Println("paused")
 	return player.state.queue[player.state.current], nil
 }
 
@@ -488,8 +458,6 @@ func (player *Player) resume() (string, error) {
 		return "", errors.New(cannot_resume_msg)
 	}
 
-	fmt.Println("size of queue ", len(player.state.queue))
-	fmt.Println("current ", player.state.current)
 	songToResume := player.state.queue[player.state.current]
 	pausedDuration := player.state.durationPaused
 	player.Unlock()
@@ -497,9 +465,7 @@ func (player *Player) resume() (string, error) {
 	ch := make(chan error)
 	defer close(ch)
 	go player.playQueue(pausedDuration.Seconds(), ch)
-	fmt.Println("Waiting for ch")
 	err := <-ch
-	fmt.Println("Received from ch")
 	return songToResume, err
 }
 
@@ -545,7 +511,6 @@ func (player *Player) stop() {
 // Returns the name of the song or error if there is no next song
 func (player *Player) next() (string, error) {
 	player.Lock()
-	fmt.Println("Calling next")
 	var songToResume string
 	if player.state.current < len(player.state.queue)-1 {
 		if player.state.status == Playing {
@@ -609,8 +574,13 @@ func (player *Player) getCurrentSongInfo() (string, error) {
 func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	songs, err := player.getQueueInfo()
 	if err != nil {
+		return "", errors.New(cannot_save_empty_queue_msg)
+	}
+
+	if strings.Contains(playlistName, "/") {
 		return "", errors.New(cannot_save_playlist_msg)
 	}
+
 	// check the directory
 	fileInfo, err := os.Stat(playlistsDir)
 	if os.IsNotExist(err) {

@@ -8,15 +8,18 @@ import (
 )
 
 func TestInit(t *testing.T) {
+	fmt.Println("TestInit")
 	player = Player{clearMutex: &sync.Mutex{}, playQueueMutex: &sync.Mutex{}}
 	err := player.init()
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	player.release()
 	player.clear()
 }
 
 func TestPlaySingleFile(t *testing.T) {
+	fmt.Println("TestPlaySingleFile")
 	player = Player{clearMutex: &sync.Mutex{}, playQueueMutex: &sync.Mutex{}}
 	err := player.init()
 	if err != nil {
@@ -37,7 +40,6 @@ func TestPlaySingleFile(t *testing.T) {
 	if player.state.status != Waiting {
 		t.Errorf("Expected status Waiting \n---\n%d\n---\nbut found \n---\n%d\n---\n", Waiting, player.state.status)
 	}
-	player.release()
 	player.clear()
 }
 
