@@ -194,7 +194,7 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 var player Player
 
 func initService() *goji.Mux {
-	player = Player{clearMutex: &sync.Mutex{}, playQueueMutex: &sync.Mutex{}}
+	player = Player{playQueueMutex: &sync.Mutex{}}
 	player.init()
 
 	// service handle functions

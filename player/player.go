@@ -98,10 +98,8 @@ var supportedExtensions []string = []string{
 }
 
 type Player struct {
-	//	wg *sync.WaitGroup
 	sync.Mutex
 	state          *State
-	clearMutex     *sync.Mutex
 	playQueueMutex *sync.Mutex
 }
 
@@ -140,10 +138,10 @@ func (player *Player) init() error {
 
 // Clears resources
 func (player *Player) clear() {
-	player.clearMutex.Lock()
+	player.playQueueMutex.Lock()
 	player.Lock()
 	defer player.Unlock()
-	defer player.clearMutex.Unlock()
+	defer player.playQueueMutex.Unlock()
 	sox.Quit()
 	player.state.status = Cleared
 }
@@ -152,8 +150,6 @@ func (player *Player) clear() {
 // Returns error if file could not be played
 func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
 	// Open the input file (with default parameters)
-	player.clearMutex.Lock()
-	defer player.clearMutex.Unlock()
 	in := sox.OpenRead(filename)
 	if in == nil {
 		err := errors.New(no_sox_in_msg)
@@ -594,7 +590,7 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	if !strings.HasSuffix(playlistName, playlistsExtension) {
 		name = playlistName + playlistsExtension
 	}
-	file, err := os.Create(name)
+	file, err := os.Create(playlistsDir + name)
 	if err != nil {
 		return "", errors.New(cannot_save_playlist_msg)
 	}

@@ -388,7 +388,7 @@ func TestSaveAsPlaylist(t *testing.T) {
 	ts := httptest.NewServer(initService())
 	defer ts.Close()
 	defer clearPlayer()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	play_url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/save/" + url.QueryEscape("sample_playlist")
@@ -443,7 +443,7 @@ func TestGetQueueInfo(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/queueinfo"
-	expected := `{"Code":0,"Message":"Queue content","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3,"test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Queue content","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3","test_sounds/beep9.mp3"]}`
 	checkResult("GET", url, expected, t)
 }
 
@@ -584,4 +584,18 @@ func TestPlayerToServiceResponseError(t *testing.T) {
 	if found != expected {
 		t.Errorf("Expected\n---\n%s\n---\nbut found\n---\n%s\n---\n", expected, found)
 	}
+}
+
+func TestPlayAfterPlay(t *testing.T) {
+	fmt.Println("TestPlayAfterPlay")
+	ts := httptest.NewServer(initService())
+	defer ts.Close()
+	defer clearPlayer()
+	url1 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep36.mp3")
+	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep36.mp3"]}`
+	checkResult("PUT", url1, expected, t)
+
+	url2 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	expected2 := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep28.mp3"]}`
+	checkResult("PUT", url2, expected2, t)
 }

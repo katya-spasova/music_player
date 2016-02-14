@@ -1,6 +1,6 @@
 # music_player
 
-    Note: music_player is still under development and is NOT working
+    Note: music_player is still under development and might not always work properly
 
 ## What is music_player?
 
