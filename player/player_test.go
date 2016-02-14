@@ -131,7 +131,7 @@ func TestPlayerPlayDir(t *testing.T) {
 	checkStr(t, "test_sounds/beep9.mp3", items[2])
 	checkInt(t, 3, len(player.state.queue))
 	player.clear()
-	checkDuration(t, 32.5, 34, time.Since(start).Seconds())
+	checkDuration(t, 6.5, 6.8, time.Since(start).Seconds())
 }
 
 func TestPlayerPlaylist(t *testing.T) {
@@ -152,7 +152,7 @@ func TestPlayerPlaylist(t *testing.T) {
 	checkStr(t, "test_sounds/beep36.mp3", items[2])
 	checkInt(t, 3, len(player.state.queue))
 	player.clear()
-	checkDuration(t, 32.5, 34, time.Since(start).Seconds())
+	checkDuration(t, 6.5, 6.8, time.Since(start).Seconds())
 }
 
 func TestPlayerPlayWrongFormat(t *testing.T) {
