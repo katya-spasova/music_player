@@ -24,13 +24,13 @@ func TestPlaySingleFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
 	checkIntFatal(t, Waiting, player.state.status)
 	start := time.Now()
 	player.playSingleFile("test_sounds/beep9.mp3", 0, nil)
 	checkDuration(t, 0.9, 1.2, time.Since(start).Seconds())
 
 	checkInt(t, Waiting, player.state.status)
-	player.clear()
 }
 
 func TestSupportedTypes(t *testing.T) {
@@ -161,6 +161,7 @@ func TestPlayerPlayWrongFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
 	items, err := player.play("test_broken/abc.txt")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -168,7 +169,6 @@ func TestPlayerPlayWrongFormat(t *testing.T) {
 	checkStr(t, format_not_supported_msg, err.Error())
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
-	player.clear()
 }
 
 func TestPlayerPlayBrokenFile(t *testing.T) {
@@ -178,6 +178,7 @@ func TestPlayerPlayBrokenFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
 	items, err := player.play("test_broken/no_music.mp3")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -185,7 +186,6 @@ func TestPlayerPlayBrokenFile(t *testing.T) {
 	checkStr(t, no_sox_in_msg, err.Error())
 	checkInt(t, 1, len(items))
 	checkInt(t, 1, len(player.state.queue))
-	player.clear()
 }
 
 func TestAddPlayItemFile(t *testing.T) {
@@ -195,6 +195,8 @@ func TestAddPlayItemFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
+
 	items, err := player.addPlayItem("test_sounds/beep9.mp3")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -202,7 +204,6 @@ func TestAddPlayItemFile(t *testing.T) {
 	checkInt(t, 1, len(items))
 	checkInt(t, 1, len(player.state.queue))
 	checkStr(t, "test_sounds/beep9.mp3", items[0])
-	player.clear()
 }
 
 func TestAddPlayItemDir(t *testing.T) {
@@ -212,6 +213,8 @@ func TestAddPlayItemDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
+
 	items, err := player.addPlayItem("test_sounds")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -221,7 +224,6 @@ func TestAddPlayItemDir(t *testing.T) {
 	checkStr(t, "test_sounds/beep28.mp3", items[0])
 	checkStr(t, "test_sounds/beep36.mp3", items[1])
 	checkStr(t, "test_sounds/beep9.mp3", items[2])
-	player.clear()
 }
 
 func TestAddPlayItemPlaylist(t *testing.T) {
@@ -231,6 +233,8 @@ func TestAddPlayItemPlaylist(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
+
 	items, err := player.addPlayItem("sample_playlist.m3u")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -240,7 +244,6 @@ func TestAddPlayItemPlaylist(t *testing.T) {
 	checkStr(t, "test_sounds/beep9.mp3", items[0])
 	checkStr(t, "test_sounds/beep28.mp3", items[1])
 	checkStr(t, "test_sounds/beep36.mp3", items[2])
-	player.clear()
 }
 
 func TestAddPlayItemWrongFormat(t *testing.T) {
@@ -250,6 +253,8 @@ func TestAddPlayItemWrongFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
+
 	items, err := player.addPlayItem("test_broken/abc.txt")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -257,7 +262,6 @@ func TestAddPlayItemWrongFormat(t *testing.T) {
 	checkStr(t, format_not_supported_msg, err.Error())
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
-	player.clear()
 }
 
 func TestAddPlayItemNotExisting(t *testing.T) {
@@ -267,6 +271,8 @@ func TestAddPlayItemNotExisting(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
+	defer player.clear()
+
 	items, err := player.addPlayItem("abc.m3u")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -274,5 +280,94 @@ func TestAddPlayItemNotExisting(t *testing.T) {
 	checkStr(t, file_not_found_msg, err.Error())
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
-	player.clear()
+}
+
+func TestAddRegularFile(t *testing.T) {
+	fmt.Println("TestAddRegularFile")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	items := player.addRegularFile("test_sounds/beep9.mp3")
+	checkInt(t, 1, len(items))
+	checkInt(t, 1, len(player.state.queue))
+	checkStr(t, "test_sounds/beep9.mp3", items[0])
+}
+
+func TestAddRegularFilePlaylist(t *testing.T) {
+	fmt.Println("TestAddRegularFilePlaylist")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	items := player.addRegularFile("playlists/sample_playlist.m3u")
+	checkInt(t, 3, len(items))
+	checkInt(t, 3, len(player.state.queue))
+	checkStr(t, "test_sounds/beep9.mp3", items[0])
+	checkStr(t, "test_sounds/beep28.mp3", items[1])
+	checkStr(t, "test_sounds/beep36.mp3", items[2])
+}
+
+func TestAddRegularFileNotSupported(t *testing.T) {
+	fmt.Println("TestAddRegularFileNotSupported")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	items := player.addRegularFile("test_brocken/abc.txt")
+	checkInt(t, 0, len(items))
+	checkInt(t, 0, len(player.state.queue))
+}
+
+func TestAddRegularFileNotExisting(t *testing.T) {
+	fmt.Println("TestAddRegularFileNotSupported")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	items := player.addRegularFile("test_bro")
+	checkInt(t, 0, len(items))
+	checkInt(t, 0, len(player.state.queue))
+}
+
+func TestAddFile(t *testing.T) {
+	fmt.Println("TestAddFile")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	item, err := player.addFile("test_sounds/beep9.mp3")
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	checkStr(t, "test_sounds/beep9.mp3", item)
+	checkInt(t, 1, len(player.state.queue))
+}
+
+func TestAddFileNotSupported(t *testing.T) {
+	fmt.Println("TestAddFileNotSupported")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	items, err := player.addFile("test_broken/abc.txt")
+	if err == nil {
+		t.Errorf("Error expected")
+	} else {
+		checkStr(t, format_not_supported_msg, err.Error())
+	}
+	checkInt(t, 0, len(items))
+	checkInt(t, 0, len(player.state.queue))
 }
