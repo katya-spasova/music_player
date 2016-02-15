@@ -441,3 +441,28 @@ func TestListPlaylistNoDir(t *testing.T) {
 	checkStr(t, playlist_not_found_msg, err.Error())
 	os.Rename("tmp", player.playlistsDir)
 }
+
+func TestListPlaylistEmptyDir(t *testing.T) {
+	fmt.Println("TestListPlaylistEmptyDir")
+
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
+	//
+	os.Rename(player.playlistsDir, "tmp/")
+
+	os.Create(player.playlistsDir)
+
+	_, err = player.listPlaylists()
+	if err == nil {
+		t.Fatalf("Error expected")
+	}
+	checkStr(t, playlist_not_found_msg, err.Error())
+
+	os.RemoveAll(player.playlistsDir)
+	os.Rename("tmp", player.playlistsDir)
+}
