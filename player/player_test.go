@@ -2,6 +2,7 @@ package player
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"testing"
 	"time"
@@ -370,4 +371,73 @@ func TestAddFileNotSupported(t *testing.T) {
 	}
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
+}
+
+func TestPlayQueueNoTrim(t *testing.T) {
+	fmt.Println("TestPlayQueueNoTrim")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	player.addFile("test_sounds/beep9.mp3")
+	start := time.Now()
+	player.playQueue(0, nil)
+	checkDuration(t, 0.9, 1.1, time.Since(start).Seconds())
+}
+
+func TestPlayQueueTrim(t *testing.T) {
+	fmt.Println("TestPlayQueueTrim")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	player.addFile("test_sounds/beep28.mp3")
+	start := time.Now()
+	player.playQueue(3.1, nil)
+	checkDuration(t, 1.4, 1.7, time.Since(start).Seconds())
+}
+
+func TestSavePlaylistNoDir(t *testing.T) {
+	fmt.Println("TestSavePlaylistNoDir")
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
+
+	os.Rename(player.playlistsDir, "tmp")
+	item, err := player.saveAsPlaylist("sample_playlist.m3u")
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	checkStr(t, "sample_playlist.m3u", item)
+	os.RemoveAll(player.playlistsDir)
+	os.Rename("tmp", player.playlistsDir)
+}
+
+func TestListPlaylistNoDir(t *testing.T) {
+	fmt.Println("TestListPlaylistNoDir")
+
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.clear()
+	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
+	//
+	os.Rename(player.playlistsDir, "tmp/")
+
+	_, err = player.listPlaylists()
+	if err == nil {
+		t.Fatalf("Error expected")
+	}
+	checkStr(t, playlist_not_found_msg, err.Error())
+	os.Rename("tmp", player.playlistsDir)
 }

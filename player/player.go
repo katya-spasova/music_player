@@ -569,11 +569,9 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	}
 
 	// check the directory
-	fileInfo, err := os.Stat(player.playlistsDir)
+	_, err = os.Stat(player.playlistsDir)
 	if os.IsNotExist(err) {
 		os.Mkdir(player.playlistsDir, 0777)
-	} else if !fileInfo.IsDir() {
-		return "", errors.New(cannot_save_playlist_msg)
 	}
 
 	// now create the file
