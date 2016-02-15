@@ -105,8 +105,6 @@ type Player struct {
 
 // InOut struct holds the state of the player
 type State struct {
-	in             *sox.Format
-	out            *sox.Format
 	chain          *sox.EffectsChain
 	status         int
 	startTime      time.Time
@@ -145,9 +143,9 @@ func (player *Player) init() error {
 // Clears resources
 func (player *Player) clear() {
 	player.playQueueMutex.Lock()
+	defer player.playQueueMutex.Unlock()
 	player.Lock()
 	defer player.Unlock()
-	defer player.playQueueMutex.Unlock()
 	sox.Quit()
 	player.state.status = Cleared
 }
@@ -155,6 +153,8 @@ func (player *Player) clear() {
 // Plays single file
 // Returns error if file could not be played
 func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
+	// recover in the cases when sox crashes
+	defer recover()
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
@@ -164,6 +164,7 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 		}
 		return err
 	}
+	defer in.Release()
 
 	// Open the output device: Specify the output signal characteristics.
 	// Since we are using only simple effects, they are the same as the
@@ -188,6 +189,8 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 			}
 		}
 	}
+	// It's observed that sox crashes at this step sometimes
+	defer out.Release()
 
 	if ch != nil {
 		ch <- nil
@@ -196,6 +199,7 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	// Create an effects chain: Some effects need to know about the
 	// input or output encoding so we provide that information here.
 	chain := sox.CreateEffectsChain(in.Encoding(), out.Encoding())
+	defer chain.Release()
 
 	// The first effect in the effect chain must be something that can
 	// source samples; in this case, we use the built-in handler that
@@ -223,28 +227,21 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	e.Release()
 
 	player.Lock()
-	player.state.in = in
-	player.state.out = out
 	player.state.chain = chain
 	player.state.status = Playing
 	player.state.startTime = time.Now()
 	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
-	// This sections is not locked as it must be possible to delete chain effects while Flow is being executed
-	// However it is possible that the effects are deleted before flow has started which causes panic
-	// We recover from it, otherwise the service crashes
-	//	defer recover()
-	fmt.Println("Before flow")
+	// Flow process not locked as it must be possible to delete chain effects
+	// while Flow is being executed
+	// sox crashes sometimes(rarely)
 	chain.Flow()
-	fmt.Println("After flow")
 
 	player.Lock()
 	if player.state.status == Playing {
 		player.state.status = Waiting
 	}
-	player.release()
-
 	player.Unlock()
 
 	return nil
@@ -416,20 +413,6 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 			}
 			player.Unlock()
 		}
-	}
-}
-
-func (player *Player) release() {
-	if player.state.in != nil {
-		player.state.in.Release()
-	}
-
-	if player.state.out != nil {
-		player.state.out.Release()
-	}
-
-	if player.state.chain != nil {
-		player.state.chain.Release()
 	}
 }
 
@@ -660,17 +643,3 @@ func (player *Player) getQueueInfo() ([]string, error) {
 	}
 	return copy, nil
 }
-
-//func main() {
-//	wg := sync.WaitGroup{}
-//	player = Player{WG:&wg}
-//	err := player.init()
-//	if (err != nil) {
-//		return
-//	}
-//	fmt.Println("Adding")
-//	wg.Add(1)
-//	player.playSingleFile("/Users/katyaspasova/Music/Vampolka.mp3")
-//	wg.Wait()
-//	player.clear()
-//}

@@ -14,7 +14,6 @@ func TestInit(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	player.release()
 	player.clear()
 }
 

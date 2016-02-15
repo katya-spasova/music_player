@@ -104,7 +104,6 @@ func play(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	name := pat.Param(ctx, "name")
 	data, err := player.play(name)
 	playerToServiceResponse(w, data, err, started_playing_info)
-	fmt.Println("response is written")
 }
 
 // Pauses the current song
