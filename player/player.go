@@ -12,7 +12,6 @@ import (
 	"time"
 )
 
-const playlistsDir string = "playlists/"
 const playlistsExtension = ".m3u"
 
 var supportedExtensions []string = []string{
@@ -101,6 +100,7 @@ type Player struct {
 	sync.Mutex
 	state          *State
 	playQueueMutex *sync.Mutex
+	playlistsDir   string
 }
 
 // InOut struct holds the state of the player
@@ -133,6 +133,12 @@ func (player *Player) init() error {
 	player.state.status = Waiting
 	player.state.current = 0
 	player.state.queue = make([]string, 0)
+	wd, err := os.Getwd()
+	if err == nil && strings.HasSuffix(wd, "music_player") {
+		player.playlistsDir = "player/playlists/"
+	} else {
+		player.playlistsDir = "playlists/"
+	}
 	return nil
 }
 
@@ -266,11 +272,11 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 	fileInfo, err := os.Stat(playItem)
 	if os.IsNotExist(err) {
 		//try it for a playlist
-		fileInfo, err = os.Stat(playlistsDir + playItem)
+		fileInfo, err = os.Stat(player.playlistsDir + playItem)
 		if os.IsNotExist(err) {
 			return nil, errors.New(file_not_found_msg)
 		}
-		playItem = playlistsDir + playItem
+		playItem = player.playlistsDir + playItem
 	}
 
 	items := make([]string, 0)
@@ -578,9 +584,9 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	}
 
 	// check the directory
-	fileInfo, err := os.Stat(playlistsDir)
+	fileInfo, err := os.Stat(player.playlistsDir)
 	if os.IsNotExist(err) {
-		os.Mkdir(playlistsDir, 0777)
+		os.Mkdir(player.playlistsDir, 0777)
 	} else if !fileInfo.IsDir() {
 		return "", errors.New(cannot_save_playlist_msg)
 	}
@@ -590,7 +596,7 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	if !strings.HasSuffix(playlistName, playlistsExtension) {
 		name = playlistName + playlistsExtension
 	}
-	file, err := os.Create(playlistsDir + name)
+	file, err := os.Create(player.playlistsDir + name)
 	if err != nil {
 		return "", errors.New(cannot_save_playlist_msg)
 	}
@@ -609,12 +615,12 @@ func (player *Player) listPlaylists() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
 	//only the playlists in playlist directory is exposed
-	fileInfo, err := os.Stat(playlistsDir)
+	fileInfo, err := os.Stat(player.playlistsDir)
 	if os.IsNotExist(err) || !fileInfo.IsDir() {
 		return nil, errors.New(playlist_not_found_msg)
 	}
 	playlists := make([]string, 0)
-	d, err := os.Open(playlistsDir)
+	d, err := os.Open(player.playlistsDir)
 	if err != nil {
 		return nil, errors.New(playlist_not_found_msg)
 	}
