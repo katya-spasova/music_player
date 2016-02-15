@@ -153,8 +153,6 @@ func (player *Player) clear() {
 // Plays single file
 // Returns error if file could not be played
 func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
-	// recover in the cases when sox crashes
-	defer recover()
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
