@@ -231,6 +231,10 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
+	// This sections is not locked as it must be possible to delete chain effects while Flow is being executed
+	// However it is possible that the effects are deleted before flow has started which causes panic
+	// We recover from it, otherwise the service crashes
+	defer recover()
 	fmt.Println("Before flow")
 	chain.Flow()
 	fmt.Println("After flow")
