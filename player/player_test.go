@@ -455,7 +455,7 @@ func TestListPlaylistEmptyDir(t *testing.T) {
 	//
 	os.Rename(player.playlistsDir, "tmp/")
 
-	os.Create(player.playlistsDir)
+	os.Mkdir(player.playlistsDir, 0777)
 
 	_, err = player.listPlaylists()
 	if err == nil {
