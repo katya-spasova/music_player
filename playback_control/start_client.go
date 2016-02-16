@@ -6,6 +6,8 @@ import (
 	"fmt"
 )
 
+const host = "http://localhost:8765/"
+
 func isValidAction(action string) bool {
 	switch action {
 	case
@@ -36,8 +38,11 @@ func main() {
 	name := flag.String("name", "", "Name of a song, a directory or a playlist")
 
 	if (*action == "play" || *action == "add" || *action == "save") && len(*name) == 0 {
-		fmt.Println("file, directory or playlist name is required with this command")
+		fmt.Println("file, directory or playlist name is required with this action")
 	}
 
-	fmt.Print(client.PerformAction(*action, *name))
+	specifiedHost := flag.String("host", host, "Specify the host")
+
+	cl := client.Client{host: *specifiedHost}
+	fmt.Print(cl.PerformAction(*action, *name))
 }
