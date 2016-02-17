@@ -10,11 +10,11 @@ import (
 )
 
 type Client struct {
-	host string
+	Host string
 }
 
 func (client *Client) getAlive() string {
-	response, err := http.Get(client.host)
+	response, err := http.Get(client.Host)
 	if err != nil {
 		fmt.Println("The service is not alive")
 		return ""
@@ -27,11 +27,11 @@ func (client *Client) getAlive() string {
 }
 
 func (client *Client) PerformAction(action string, name string) string {
-	response, err := performCall(determineHttpMethod(action, name), client.formUrl(action, name))
+	response, err := performCall(determineHttpMethod(action), client.formUrl(action, name))
 	return getDisplayMessage(response, err)
 }
 
-func determineHttpMethod(action string, name string) (method string) {
+func determineHttpMethod(action string) (method string) {
 	switch action {
 	case
 		"songinfo",
@@ -65,12 +65,13 @@ func (client *Client) formUrl(action string, name string) (requestUrl string) {
 		"pause",
 		"resume",
 		"stop":
-		requestUrl = client.host + action
+		requestUrl = client.Host + action
 
 	case "add",
 		"play",
 		"save":
-		requestUrl = client.host + action + "/" + url.QueryEscape(name)
+		requestUrl = client.Host + action + "/" + url.QueryEscape(name)
+		fmt.Println("requestUrl " + requestUrl)
 	}
 
 	return requestUrl

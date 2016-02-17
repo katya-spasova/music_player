@@ -622,3 +622,19 @@ func TestPlayPlaylistShortNames(t *testing.T) {
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
 	checkResult("PUT", url1, expected, t)
 }
+
+func TestResumeAfterStop(t *testing.T) {
+	fmt.Println("TestPlayAfterPlay")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	playUrl := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep36.mp3")
+	performCall("PUT", playUrl)
+
+	stopUrl := ts.URL + "/stop"
+	performCall("PUT", stopUrl)
+
+	resumeUrl := ts.URL + "/resume"
+	expected2 := `{"Code":1,"Message":"Cannot resume. No song was paused"}`
+	checkResult("POST", resumeUrl, expected2, t)
+}

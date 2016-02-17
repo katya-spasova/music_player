@@ -13,7 +13,7 @@ func TestGetAlive(t *testing.T) {
 	defer ts.Close()
 	defer player.WaitEnd()
 
-	cl := Client{host: ts.URL + "/"}
+	cl := Client{Host: ts.URL + "/"}
 	found := cl.getAlive()
 	expected := "I'm alive"
 	if found != expected {
@@ -34,7 +34,7 @@ func checkInt(t *testing.T, expected int, found int) {
 }
 
 func TestFormUrl(t *testing.T) {
-	cl := Client{host: "http://localhost:8765/"}
+	cl := Client{Host: "http://localhost:8765/"}
 	checkStr(t, "http://localhost:8765/play/test_sounds%2Fbeep9.mp3", cl.formUrl("play", "test_sounds/beep9.mp3"))
 	checkStr(t, "http://localhost:8765/save/abc.m3u", cl.formUrl("save", "abc.m3u"))
 	checkStr(t, "http://localhost:8765/add/test_sounds%2Fbeep9.mp3", cl.formUrl("add", "test_sounds/beep9.mp3"))
@@ -126,7 +126,7 @@ func TestPerformAction(t *testing.T) {
 	defer ts.Close()
 	defer player.WaitEnd()
 
-	cl := Client{host: ts.URL + "/"}
+	cl := Client{Host: ts.URL + "/"}
 	found := cl.PerformAction("play", "../../player/test_sounds/beep9.mp3")
 	expected := `Started playing
 beep9.mp3`

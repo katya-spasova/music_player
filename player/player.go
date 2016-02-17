@@ -441,7 +441,7 @@ func (player *Player) stopFlow() {
 func (player *Player) resume() (string, error) {
 	player.Lock()
 
-	if player.state.status != Paused {
+	if player.state.status != Paused || player.state.current >= len(player.state.queue) {
 		player.Unlock()
 		return "", errors.New(cannot_resume_msg)
 	}

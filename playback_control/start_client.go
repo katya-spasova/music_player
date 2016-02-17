@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const host = "http://localhost:8765/"
+const defaultHost = "http://localhost:8765/"
 
 func isValidAction(action string) bool {
 	switch action {
@@ -42,12 +42,15 @@ func main() {
 		fmt.Println("file, directory or playlist name is required with this action")
 	}
 
-	specifiedHost := flag.String("host", host, "Specify the host")
+	specifiedHost := flag.String("host", defaultHost, "Specify the host")
+	flag.Parse()
+
+	fmt.Println(*name)
 
 	var h = *specifiedHost
 	if strings.HasSuffix("/", h) {
 		h = h + "/"
 	}
-	cl := client.Client{host: *specifiedHost}
+	cl := client.Client{Host: *specifiedHost}
 	fmt.Print(cl.PerformAction(*action, *name))
 }
