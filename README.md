@@ -8,8 +8,7 @@ music_player is a music player and a RESTful web service that provides control f
 
 ## How do I run music_player?
 
-1. music_player uses SoX internally (http://sox.sourceforge.net/)
-So you should install it first.
+* **1. music_player uses SoX internally (http://sox.sourceforge.net/). So you should install it first.**
 
 *Linux:*
 
@@ -28,18 +27,18 @@ So you should install it first.
   brew install sox --with-libvorbis --with-flac --with-lame
 ~~~
 
-2. To get this project execute:
+* **2. To get this project execute:**
 
 ~~~sh
    go get github.com/katya-spasova/music_player
 ~~~
 
-3. Start the service:
+* **3. Start the service:**
 ~~~sh
    go run start_service.go
 ~~~
 
-4. To run the unit tests
+* **4. To run the unit tests**
 ~~~sh
   cd $GOPATH/src/github.com/katya-spasova/music_player/player/
   go test
