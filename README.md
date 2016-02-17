@@ -115,7 +115,6 @@ Code "0" is used for success and "1" failure
 | 0 | The queue is saved as a playlist |
 | 0 | A list of all saved playlists |
 | 0 | Queue content |
-| 1 | Failed to initialize SoX |
 | 1 | SoX failed to open input file |
 | 1 | Sox failed to open output device |
 | 1 | File cannot be found |

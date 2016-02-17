@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"encoding/json"
+	"github.com/krig/go-sox"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
@@ -18,7 +19,6 @@ const (
 )
 
 // Messages
-const no_sox_msg string = "Failed to initialize SoX"
 const no_sox_in_msg string = "SoX failed to open input file"
 const no_sox_out_msg string = "Sox failed to open output device"
 const file_not_found_msg string = "File cannot be found"
@@ -222,7 +222,12 @@ func ClearPlayer() {
 func Start() {
 	// init the player
 	mux := InitService()
+	// init sox
+	if !sox.Init() {
+		fmt.Errorf("sox is not found")
+	}
 	// clean up
+	defer sox.Quit()
 	defer ClearPlayer()
 	// start the service
 	http.ListenAndServe(":8765", mux)

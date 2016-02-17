@@ -2,11 +2,19 @@ package player
 
 import (
 	"fmt"
+	"github.com/krig/go-sox"
 	"os"
 	"sync"
 	"testing"
 	"time"
 )
+
+func TestMain(m *testing.M) {
+	sox.Init()
+	code := m.Run()
+	sox.Quit()
+	os.Exit(code)
+}
 
 func TestInit(t *testing.T) {
 	fmt.Println("TestInit")

@@ -124,9 +124,6 @@ const (
 func (player *Player) init() error {
 	player.Lock()
 	defer player.Unlock()
-	if !sox.Init() {
-		return errors.New(no_sox_msg)
-	}
 	player.state = new(State)
 	player.state.status = Waiting
 	player.state.current = 0
@@ -146,7 +143,6 @@ func (player *Player) clear() {
 	defer player.playQueueMutex.Unlock()
 	player.Lock()
 	defer player.Unlock()
-	sox.Quit()
 	player.state.status = Cleared
 }
 
