@@ -83,9 +83,9 @@ The json response in case the operation is successful look similar to the follow
    "Code": 0,
    "Message": "Queue content",
    "Data": [
-      "test_sounds/beep9.mp3",
-      "test_sounds/beep28.mp3",
-      "test_sounds/beep36.mp3"
+      "beep9.mp3",
+      "beep28.mp3",
+      "beep36.mp3"
    ]
 }
 ~~~
