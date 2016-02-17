@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"os"
 	"reflect"
 	"strings"
 	"testing"
@@ -390,9 +391,11 @@ func TestSaveAsPlaylist(t *testing.T) {
 	play_url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
 	performCall("PUT", play_url)
 
-	url := ts.URL + "/save/" + url.QueryEscape("sample_playlist")
-	expected := `{"Code":0,"Message":"The queue is saved as a playlist","Data":["sample_playlist.m3u"]}`
+	url := ts.URL + "/save/" + url.QueryEscape("tests_tmp")
+	expected := `{"Code":0,"Message":"The queue is saved as a playlist","Data":["tests_tmp.m3u"]}`
 	checkResult("PUT", url, expected, t)
+
+	os.Remove(player.playlistsDir + "tests_tmp.m3u")
 }
 
 func TestSaveAsPlaylistNoPlayback(t *testing.T) {
@@ -608,4 +611,14 @@ func TestFilterPath(t *testing.T) {
 	checkStr(t, filtered[1], "cde.mp3")
 	checkStr(t, filtered[2], "fgh.ogg")
 	checkStr(t, filtered[3], "ijk.flac")
+}
+
+func TestPlayPlaylistShortNames(t *testing.T) {
+	fmt.Println("TestPlayPlaylistShortNames")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer ClearPlayer()
+	url1 := ts.URL + "/play/" + url.QueryEscape("test_pl_short_names/sample_playlist_short.m3u")
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
+	checkResult("PUT", url1, expected, t)
 }

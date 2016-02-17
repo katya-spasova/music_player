@@ -316,10 +316,18 @@ func (player *Player) addRegularFile(playItem string) []string {
 	if strings.HasSuffix(playItem, playlistsExtension) {
 		file, err := os.Open(playItem)
 		if err == nil {
+			lastSlash := strings.LastIndex(playItem, "/")
+			path := ""
+			if lastSlash > 0 {
+				path = playItem[:lastSlash+1]
+			}
 			scanner := bufio.NewScanner(file)
 			for scanner.Scan() {
 				line := scanner.Text()
 				if len(line) > 0 && !strings.HasPrefix(line, "#") {
+					if !strings.Contains(line, "/") {
+						line = path + line
+					}
 					name, err := player.addFile(line)
 					// if file is not suported - simply skip it
 					if err == nil {
