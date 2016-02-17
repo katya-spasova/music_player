@@ -8,31 +8,42 @@ music_player is a music player and a RESTful web service that provides control f
 
 ## How do I run music_player?
 
-music_player uses SoX internally (http://sox.sourceforge.net/)
+1. music_player uses SoX internally (http://sox.sourceforge.net/)
 So you should install it first.
 
 *Linux:*
 
-  Installation depends on your distribution. You may try:
+  Installation depends on your distribution.
 
-  **yum install sox libsox-fmt-all**
+  For example on Ubuntu:
 
-  or:
-
-  **apt-get install sox libsox-fmt-all**
+~~~sh
+  sudo apt-get install sox libsox-fmt-all libsox-dev
+~~~
 
 *OSX:*
 
   The easiest way is to use Homebrew (http://brew.sh/)
+~~~sh
+  brew install sox --with-libvorbis --with-flac --with-lame
+~~~
 
-  **brew install sox --with-libvorbis --with-flac --with-lame**
+2. To get this project execute:
 
-To get this project execute:
+~~~sh
+   go get github.com/katya-spasova/music_player
+~~~
 
-  **go get github.com/katya-spasova/music_player**
+3. Start the service:
+~~~sh
+   go run start_service.go
+~~~
 
-Start the service:
-  **go run start_service.go**
+4. To run the unit tests
+~~~sh
+  cd $GOPATH/src/github.com/katya-spasova/music_player/player/
+  go test
+~~~
 
 ## What are the supported music formats?
 
