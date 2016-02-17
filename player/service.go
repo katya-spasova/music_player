@@ -9,6 +9,7 @@ import (
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
+	"strings"
 	"sync"
 )
 
@@ -90,11 +91,20 @@ func alive(w http.ResponseWriter, r *http.Request) {
 }
 
 func playerToServiceResponse(w http.ResponseWriter, data []string, err error, successMessage string) {
-	container := getResponseContainer(data, err)
+	container := getResponseContainer(filterPath(data), err)
 	if err == nil {
 		container.Message = successMessage
 	}
 	writeHttpResponse(w, container)
+}
+
+func filterPath(data []string) []string {
+	filtered := make([]string, 0, len(data))
+	for _, element := range data {
+		lastSlashIndex := strings.LastIndex(element, "/")
+		filtered = append(filtered, element[lastSlashIndex+1:])
+	}
+	return filtered
 }
 
 // Starts playing a file, files from directory or a playlist immediately - current queue is cleared

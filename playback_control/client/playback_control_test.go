@@ -129,7 +129,7 @@ func TestPerformAction(t *testing.T) {
 	cl := Client{host: ts.URL + "/"}
 	found := cl.PerformAction("play", "../../player/test_sounds/beep9.mp3")
 	expected := `Started playing
-../../player/test_sounds/beep9.mp3`
+beep9.mp3`
 
 	checkStr(t, expected, found)
 }

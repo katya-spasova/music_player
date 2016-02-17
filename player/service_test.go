@@ -69,7 +69,7 @@ func TestPlay(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -79,7 +79,7 @@ func TestPlayDir(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3","test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3","beep36.mp3","beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -89,7 +89,7 @@ func TestPlayPlaylist(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3","beep28.mp3","beep36.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
 
@@ -98,7 +98,7 @@ func TestPlayNonExistingFile(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer ClearPlayer()
-	url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep1.mp3")
+	url := ts.URL + "/play/" + url.QueryEscape("beep1.mp3")
 	expected := `{"Code":1,"Message":"File cannot be found"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -131,7 +131,7 @@ func TestPause(t *testing.T) {
 	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	url := ts.URL + "/pause"
-	expected := `{"Code":0,"Message":"Song is paused","Data":["test_sounds/beep28.mp3"]}`
+	expected := `{"Code":0,"Message":"Song is paused","Data":["beep28.mp3"]}`
 
 	checkResult("POST", url, expected, t)
 }
@@ -157,7 +157,7 @@ func TestResume(t *testing.T) {
 	pause_url := ts.URL + "/pause"
 	performCall("POST", pause_url)
 	url := ts.URL + "/resume"
-	expected := `{"Code":0,"Message":"Song is resumed","Data":["test_sounds/beep28.mp3"]}`
+	expected := `{"Code":0,"Message":"Song is resumed","Data":["beep28.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -231,7 +231,7 @@ func TestNext(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/next"
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep36.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep36.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -269,7 +269,7 @@ func TestPrevious(t *testing.T) {
 	performCall("POST", next_url)
 
 	url := ts.URL + "/previous"
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep28.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -305,7 +305,7 @@ func TestGetCurrentSongInfo(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/songinfo"
-	expected := `{"Code":0,"Message":"The filename of the current song","Data":["test_sounds/beep28.mp3"]}`
+	expected := `{"Code":0,"Message":"The filename of the current song","Data":["beep28.mp3"]}`
 	checkResult("GET", url, expected, t)
 }
 
@@ -325,7 +325,7 @@ func TestAdd(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := `{"Code":0,"Message":"Added to queue","Data":["test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -335,7 +335,7 @@ func TestAddDir(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/add/" + url.QueryEscape("test_sounds")
-	expected := `{"Code":0,"Message":"Added to queue","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3","test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Added to queue","Data":["beep28.mp3","beep36.mp3","beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -345,7 +345,7 @@ func TestAddPlaylist(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url := ts.URL + "/add/" + url.QueryEscape("sample_playlist.m3u")
-	expected := `{"Code":0,"Message":"Added to queue","Data":["test_sounds/beep9.mp3","test_sounds/beep28.mp3","test_sounds/beep36.mp3"]}`
+	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3","beep28.mp3","beep36.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -378,7 +378,7 @@ func TestAddWithAvailableQueue(t *testing.T) {
 	performCall("POST", add_url)
 
 	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep9.mp3")
-	expected := `{"Code":0,"Message":"Added to queue","Data":["test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
 
@@ -442,7 +442,7 @@ func TestGetQueueInfo(t *testing.T) {
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/queueinfo"
-	expected := `{"Code":0,"Message":"Queue content","Data":["test_sounds/beep28.mp3","test_sounds/beep36.mp3","test_sounds/beep9.mp3"]}`
+	expected := `{"Code":0,"Message":"Queue content","Data":["beep28.mp3","beep36.mp3","beep9.mp3"]}`
 	checkResult("GET", url, expected, t)
 }
 
@@ -591,10 +591,21 @@ func TestPlayAfterPlay(t *testing.T) {
 	defer ts.Close()
 	defer ClearPlayer()
 	url1 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep36.mp3")
-	expected := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep36.mp3"]}`
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep36.mp3"]}`
 	checkResult("PUT", url1, expected, t)
 
 	url2 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
-	expected2 := `{"Code":0,"Message":"Started playing","Data":["test_sounds/beep28.mp3"]}`
+	expected2 := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3"]}`
 	checkResult("PUT", url2, expected2, t)
+}
+
+func TestFilterPath(t *testing.T) {
+	fmt.Println("TestFilterPath")
+
+	filtered := filterPath([]string{"/abc.mp3", "abds/cde.mp3", "fgh.ogg", "fdklj/fkdjf/ijk.flac"})
+	checkInt(t, 4, len(filtered))
+	checkStr(t, filtered[0], "abc.mp3")
+	checkStr(t, filtered[1], "cde.mp3")
+	checkStr(t, filtered[2], "fgh.ogg")
+	checkStr(t, filtered[3], "ijk.flac")
 }
