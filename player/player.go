@@ -137,13 +137,10 @@ func (player *Player) init() error {
 	return nil
 }
 
-// Clears resources
-func (player *Player) clear() {
+// Used to wait the end of playing queue
+func (player *Player) waitEnd() {
 	player.playQueueMutex.Lock()
 	defer player.playQueueMutex.Unlock()
-	player.Lock()
-	defer player.Unlock()
-	player.state.status = Cleared
 }
 
 // Plays single file
@@ -385,7 +382,7 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 	for play {
 		var fileName string
 		player.Lock()
-		if player.state.status == Paused || player.state.status == Cleared {
+		if player.state.status == Paused {
 			play = false
 		} else {
 			index := player.state.current

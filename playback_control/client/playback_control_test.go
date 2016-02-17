@@ -11,7 +11,7 @@ import (
 func TestGetAlive(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	cl := Client{host: ts.URL + "/"}
 	found := cl.getAlive()
@@ -74,7 +74,7 @@ func TestDisplayError(t *testing.T) {
 func TestPerformCallPut(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	responseContainer, err := performCall("PUT", ts.URL+"/play/"+url.QueryEscape("../../player/test_sounds/beep9.mp3"))
 	if err != nil {
@@ -87,7 +87,7 @@ func TestPerformCallPut(t *testing.T) {
 func TestPerformCallGet(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	responseContainer, err := performCall("GET", ts.URL+"/songinfo")
 	if err != nil {
@@ -100,7 +100,7 @@ func TestPerformCallGet(t *testing.T) {
 func TestPerformCallPost(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	responseContainer, err := performCall("POST", ts.URL+"/pause")
 	if err != nil {
@@ -113,7 +113,7 @@ func TestPerformCallPost(t *testing.T) {
 func TestPerformCallError(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	_, err := performCall("GET", ts.URL+"/pause")
 	if err == nil {
@@ -124,7 +124,7 @@ func TestPerformCallError(t *testing.T) {
 func TestPerformAction(t *testing.T) {
 	ts := httptest.NewServer(player.InitService())
 	defer ts.Close()
-	defer player.ClearPlayer()
+	defer player.WaitEnd()
 
 	cl := Client{host: ts.URL + "/"}
 	found := cl.PerformAction("play", "../../player/test_sounds/beep9.mp3")

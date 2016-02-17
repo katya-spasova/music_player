@@ -23,7 +23,7 @@ func TestInit(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	player.clear()
+	player.waitEnd()
 }
 
 func TestPlaySingleFile(t *testing.T) {
@@ -33,7 +33,7 @@ func TestPlaySingleFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	checkIntFatal(t, Waiting, player.state.status)
 	start := time.Now()
 	player.playSingleFile("test_sounds/beep9.mp3", 0, nil)
@@ -92,7 +92,7 @@ func TestPlayFile(t *testing.T) {
 	checkStr(t, "test_sounds/beep9.mp3", items[0])
 	checkInt(t, 1, len(player.state.queue))
 
-	player.clear()
+	player.waitEnd()
 	checkDuration(t, 0.9, 1.2, time.Since(start).Seconds())
 }
 
@@ -138,7 +138,7 @@ func TestPlayerPlayDir(t *testing.T) {
 	checkStr(t, "test_sounds/beep36.mp3", items[1])
 	checkStr(t, "test_sounds/beep9.mp3", items[2])
 	checkInt(t, 3, len(player.state.queue))
-	player.clear()
+	player.waitEnd()
 	checkDuration(t, 6.5, 6.8, time.Since(start).Seconds())
 }
 
@@ -159,7 +159,7 @@ func TestPlayerPlaylist(t *testing.T) {
 	checkStr(t, "test_sounds/beep28.mp3", items[1])
 	checkStr(t, "test_sounds/beep36.mp3", items[2])
 	checkInt(t, 3, len(player.state.queue))
-	player.clear()
+	player.waitEnd()
 	checkDuration(t, 6.5, 6.8, time.Since(start).Seconds())
 }
 
@@ -170,7 +170,7 @@ func TestPlayerPlayWrongFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items, err := player.play("test_broken/abc.txt")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -187,7 +187,7 @@ func TestPlayerPlayBrokenFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items, err := player.play("test_broken/no_music.mp3")
 	if err == nil {
 		t.Fatalf("Error expected")
@@ -204,7 +204,7 @@ func TestAddPlayItemFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 
 	items, err := player.addPlayItem("test_sounds/beep9.mp3")
 	if err != nil {
@@ -222,7 +222,7 @@ func TestAddPlayItemDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 
 	items, err := player.addPlayItem("test_sounds")
 	if err != nil {
@@ -242,7 +242,7 @@ func TestAddPlayItemPlaylist(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 
 	items, err := player.addPlayItem("sample_playlist.m3u")
 	if err != nil {
@@ -262,7 +262,7 @@ func TestAddPlayItemWrongFormat(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 
 	items, err := player.addPlayItem("test_broken/abc.txt")
 	if err == nil {
@@ -280,7 +280,7 @@ func TestAddPlayItemNotExisting(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 
 	items, err := player.addPlayItem("abc.m3u")
 	if err == nil {
@@ -298,7 +298,7 @@ func TestAddRegularFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items := player.addRegularFile("test_sounds/beep9.mp3")
 	checkInt(t, 1, len(items))
 	checkInt(t, 1, len(player.state.queue))
@@ -312,7 +312,7 @@ func TestAddRegularFilePlaylist(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items := player.addRegularFile("playlists/sample_playlist.m3u")
 	checkInt(t, 3, len(items))
 	checkInt(t, 3, len(player.state.queue))
@@ -328,7 +328,7 @@ func TestAddRegularFileNotSupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items := player.addRegularFile("test_brocken/abc.txt")
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
@@ -341,7 +341,7 @@ func TestAddRegularFileNotExisting(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items := player.addRegularFile("test_bro")
 	checkInt(t, 0, len(items))
 	checkInt(t, 0, len(player.state.queue))
@@ -354,7 +354,7 @@ func TestAddFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	item, err := player.addFile("test_sounds/beep9.mp3")
 	if err != nil {
 		t.Fatalf(err.Error())
@@ -370,7 +370,7 @@ func TestAddFileNotSupported(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	items, err := player.addFile("test_broken/abc.txt")
 	if err == nil {
 		t.Errorf("Error expected")
@@ -388,7 +388,7 @@ func TestPlayQueueNoTrim(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	player.addFile("test_sounds/beep9.mp3")
 	start := time.Now()
 	player.playQueue(0, nil)
@@ -402,7 +402,7 @@ func TestPlayQueueTrim(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	player.addFile("test_sounds/beep28.mp3")
 	start := time.Now()
 	player.playQueue(3.1, nil)
@@ -416,7 +416,7 @@ func TestSavePlaylistNoDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
 
 	os.Rename(player.playlistsDir, "tmp")
@@ -437,7 +437,7 @@ func TestListPlaylistNoDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
 	//
 	os.Rename(player.playlistsDir, "tmp/")
@@ -458,7 +458,7 @@ func TestListPlaylistEmptyDir(t *testing.T) {
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
-	defer player.clear()
+	defer player.waitEnd()
 	player.addRegularFile(player.playlistsDir + "sample_playlist.m3u")
 	//
 	os.Rename(player.playlistsDir, "tmp/")

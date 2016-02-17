@@ -224,8 +224,8 @@ func InitService() *goji.Mux {
 	return mux
 }
 
-func ClearPlayer() {
-	player.clear()
+func WaitEnd() {
+	player.waitEnd()
 }
 
 // Start - starts the web service
@@ -238,7 +238,6 @@ func Start() {
 	}
 	// clean up
 	defer sox.Quit()
-	defer ClearPlayer()
 	// start the service
 	http.ListenAndServe(":8765", mux)
 }
