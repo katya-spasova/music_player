@@ -19,7 +19,7 @@ func performCall(method string, url string) (string, error) {
 	if method == "GET" {
 		res, err = http.Get(url)
 	} else if method == "POST" {
-		res, err = http.Post(url, "text/plain", nil) //todo:
+		res, err = http.Post(url, "text/plain", nil)
 	} else if method == "PUT" {
 		client := &http.Client{}
 		request, err1 := http.NewRequest("PUT", url, nil)
@@ -39,6 +39,7 @@ func performCall(method string, url string) (string, error) {
 		return "", err
 	}
 	found := string(body[:])
+	time.Sleep(10 * time.Millisecond)
 	return found, nil
 }
 
