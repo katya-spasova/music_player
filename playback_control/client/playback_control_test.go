@@ -2,6 +2,7 @@ package client
 
 import "github.com/katya-spasova/music_player/player"
 import (
+	"errors"
 	"net/http/httptest"
 	"testing"
 )
@@ -39,4 +40,26 @@ func TestFormUrl(t *testing.T) {
 	checkStr(t, "http://localhost:8765/songinfo", cl.formUrl("songinfo", "djkfd"))
 	checkStr(t, "http://localhost:8765/queueinfo", cl.formUrl("queueinfo", "djkfd"))
 	checkStr(t, "http://localhost:8765/playlists", cl.formUrl("playlists", "djkfd"))
+}
+
+func TestDisplayMessage(t *testing.T) {
+	c := ResponseContainer{Code: 0, Message: "Started Playing",
+		Data: []string{"file1.mp3", "file two.flac", "/full/file3.ogg"}}
+	expected := `Started Playing
+file1.mp3
+file two.flac
+/full/file3.ogg`
+	checkStr(t, expected, getDisplayMessage(c, nil))
+}
+
+func TestDisplayErrorMessage(t *testing.T) {
+	c := ResponseContainer{Code: 1, Message: "Error Message",
+		Data: []string{"file1.mp3", "file two.flac", "/full/file3.ogg"}}
+	checkStr(t, "Error Message", getDisplayMessage(c, nil))
+}
+
+func TestDisplayError(t *testing.T) {
+	c := ResponseContainer{Code: 1, Message: "Error Message",
+		Data: []string{"file1.mp3", "file two.flac", "/full/file3.ogg"}}
+	checkStr(t, "Error text", getDisplayMessage(c, errors.New("Error text")))
 }

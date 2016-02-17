@@ -133,7 +133,7 @@ func getDisplayMessage(response ResponseContainer, err error) string {
 		data_list := response.Data
 		if data_list != nil && len(data_list) > 0 {
 			for _, element := range data_list {
-				buffer.WriteString(" ")
+				buffer.WriteString("\n")
 				buffer.WriteString(element)
 			}
 		}
