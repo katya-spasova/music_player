@@ -113,7 +113,7 @@ func performCall(method string, url string) (ResponseContainer, error) {
 		return container, err
 	}
 
-	err = json.Unmarshal(body, container)
+	err = json.Unmarshal(body, &container)
 
 	if err != nil {
 		return container, err

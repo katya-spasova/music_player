@@ -4,6 +4,7 @@ import "github.com/katya-spasova/music_player/playback_control/client"
 import (
 	"flag"
 	"fmt"
+	"strings"
 )
 
 const host = "http://localhost:8765/"
@@ -43,6 +44,10 @@ func main() {
 
 	specifiedHost := flag.String("host", host, "Specify the host")
 
+	var h = *specifiedHost
+	if strings.HasSuffix("/", h) {
+		h = h + "/"
+	}
 	cl := client.Client{host: *specifiedHost}
 	fmt.Print(cl.PerformAction(*action, *name))
 }
