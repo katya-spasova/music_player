@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -28,8 +30,29 @@ func (client *Client) getAlive() string {
 }
 
 func (client *Client) PerformAction(action string, name string) string {
-	response, err := performCall(determineHttpMethod(action), client.formUrl(action, name))
+	path := name
+	if action != "save" && client.isLocalhostCall() {
+		var err error = nil
+		path, err = filepath.Abs(name)
+		if err != nil {
+			//ignore error, try with name
+			path = name
+		}
+		_, err = os.Stat(path)
+		if os.IsNotExist(err) {
+			// this can be a saved playlist, so try with name
+			path = name
+		}
+	}
+	response, err := performCall(determineHttpMethod(action), client.formUrl(action, path))
 	return getDisplayMessage(response, err)
+}
+
+func (client *Client) isLocalhostCall() bool {
+	return strings.HasPrefix(client.Host, "http://localhost") ||
+		strings.HasPrefix(client.Host, "https://localhost") ||
+		strings.HasPrefix(client.Host, "http://127.") ||
+		strings.HasPrefix(client.Host, "https://127.")
 }
 
 func determineHttpMethod(action string) (method string) {

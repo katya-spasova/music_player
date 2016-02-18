@@ -4,7 +4,6 @@ import "github.com/katya-spasova/music_player/player"
 import (
 	"errors"
 	"net/http/httptest"
-	"net/url"
 	"testing"
 )
 
@@ -137,4 +136,36 @@ beep9.mp3`
 func TestEscape(t *testing.T) {
 	found := escape(`/abc cde\fgh.ijk`)
 	checkStr(t, "%2Fabc%20cde%5Cfgh.ijk", found)
+}
+
+func TestIsLocalhost(t *testing.T) {
+	cl := Client{Host: "http://localhost:8765"}
+	if !cl.isLocalhostCall() {
+		t.Error("http://localhost:8765 is expected to be localhost")
+	}
+
+	cl = Client{Host: "https://localhost:8765"}
+	if !cl.isLocalhostCall() {
+		t.Error("https://localhost:8765 is expected to be localhost")
+	}
+
+	cl = Client{Host: "http://127.0.0.1:8765"}
+	if !cl.isLocalhostCall() {
+		t.Error("http://127.0.0.1:8765 is expected to be localhost")
+	}
+
+	cl = Client{Host: "https://127.0.0.1:8765"}
+	if !cl.isLocalhostCall() {
+		t.Error("https://127.0.0.1:8765 is expected to be localhost")
+	}
+
+	cl = Client{Host: "http://192.168.0.1:8765"}
+	if cl.isLocalhostCall() {
+		t.Error("http://192.168.0.1:8765 is NOT expected to be localhost")
+	}
+
+	cl = Client{Host: "http://google.com"}
+	if cl.isLocalhostCall() {
+		t.Error("http://google.com is NOT expected to be localhost")
+	}
 }
