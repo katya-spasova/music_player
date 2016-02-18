@@ -52,5 +52,5 @@ func main() {
 		h = h + "/"
 	}
 	cl := client.Client{Host: *specifiedHost}
-	fmt.Print(cl.PerformAction(*action, *name))
+	fmt.Println(cl.PerformAction(*action, *name))
 }

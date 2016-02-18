@@ -69,7 +69,7 @@ func TestPlay(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep9.mp3")
+	url := ts.URL + "/play/" + escape("test_sounds/beep9.mp3")
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
@@ -79,7 +79,7 @@ func TestPlayDir(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	url := ts.URL + "/play/" + escape("test_sounds")
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3","beep36.mp3","beep9.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
@@ -89,7 +89,7 @@ func TestPlayPlaylist(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
+	url := ts.URL + "/play/" + escape("sample_playlist.m3u")
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3","beep28.mp3","beep36.mp3"]}`
 	checkResult("PUT", url, expected, t)
 }
@@ -99,7 +99,7 @@ func TestPlayNonExistingFile(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("beep1.mp3")
+	url := ts.URL + "/play/" + escape("beep1.mp3")
 	expected := `{"Code":1,"Message":"File cannot be found"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -109,7 +109,7 @@ func TestPlayInvalidFileFormat(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("test_broken/abc.txt")
+	url := ts.URL + "/play/" + escape("test_broken/abc.txt")
 	expected := `{"Code":1,"Message":"Format is not supported"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -119,7 +119,7 @@ func TestPlayBrokenFile(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/play/" + url.QueryEscape("test_broken/no_music.mp3")
+	url := ts.URL + "/play/" + escape("test_broken/no_music.mp3")
 	expected := `{"Code":1,"Message":"SoX failed to open input file"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -129,7 +129,7 @@ func TestPause(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	url := ts.URL + "/pause"
 	expected := `{"Code":0,"Message":"Song is paused","Data":["beep28.mp3"]}`
@@ -152,7 +152,7 @@ func TestResume(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	time.Sleep(1 * time.Second)
 	pause_url := ts.URL + "/pause"
@@ -177,7 +177,7 @@ func TestResumeNoPaused(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/resume"
@@ -190,7 +190,7 @@ func TestStop(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/stop"
@@ -213,7 +213,7 @@ func TestStopPaused(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 	pause_url := ts.URL + "/pause"
 	performCall("PUT", pause_url)
@@ -228,7 +228,7 @@ func TestNext(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	play_url := ts.URL + "/play/" + escape("test_sounds")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/next"
@@ -241,7 +241,7 @@ func TestNextNoNext(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/next"
@@ -264,7 +264,7 @@ func TestPrevious(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	play_url := ts.URL + "/play/" + escape("test_sounds")
 	performCall("PUT", play_url)
 	next_url := ts.URL + "/next"
 	performCall("POST", next_url)
@@ -279,7 +279,7 @@ func TestPreviousNoPrevious(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/previous"
@@ -302,7 +302,7 @@ func TestGetCurrentSongInfo(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/songinfo"
@@ -325,7 +325,7 @@ func TestAdd(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep9.mp3")
+	url := ts.URL + "/add/" + escape("test_sounds/beep9.mp3")
 	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
@@ -335,7 +335,7 @@ func TestAddDir(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/add/" + url.QueryEscape("test_sounds")
+	url := ts.URL + "/add/" + escape("test_sounds")
 	expected := `{"Code":0,"Message":"Added to queue","Data":["beep28.mp3","beep36.mp3","beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
@@ -345,7 +345,7 @@ func TestAddPlaylist(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/add/" + url.QueryEscape("sample_playlist.m3u")
+	url := ts.URL + "/add/" + escape("sample_playlist.m3u")
 	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3","beep28.mp3","beep36.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
@@ -355,7 +355,7 @@ func TestAddNonExistingFile(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep1.mp3")
+	url := ts.URL + "/add/" + escape("test_sounds/beep1.mp3")
 	expected := `{"Code":1,"Message":"File cannot be found"}`
 	checkResult("POST", url, expected, t)
 }
@@ -365,7 +365,7 @@ func TestAddInvalidFileFormat(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/add/" + url.QueryEscape("test_broken/abc.txt")
+	url := ts.URL + "/add/" + escape("test_broken/abc.txt")
 	expected := `{"Code":1,"Message":"Format is not supported"}`
 	checkResult("POST", url, expected, t)
 }
@@ -375,10 +375,10 @@ func TestAddWithAvailableQueue(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	add_url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep9.mp3")
+	add_url := ts.URL + "/add/" + escape("test_sounds/beep9.mp3")
 	performCall("POST", add_url)
 
-	url := ts.URL + "/add/" + url.QueryEscape("test_sounds/beep9.mp3")
+	url := ts.URL + "/add/" + escape("test_sounds/beep9.mp3")
 	expected := `{"Code":0,"Message":"Added to queue","Data":["beep9.mp3"]}`
 	checkResult("POST", url, expected, t)
 }
@@ -388,10 +388,10 @@ func TestSaveAsPlaylist(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("sample_playlist.m3u")
+	play_url := ts.URL + "/play/" + escape("sample_playlist.m3u")
 	performCall("PUT", play_url)
 
-	url := ts.URL + "/save/" + url.QueryEscape("tests_tmp")
+	url := ts.URL + "/save/" + escape("tests_tmp")
 	expected := `{"Code":0,"Message":"The queue is saved as a playlist","Data":["tests_tmp.m3u"]}`
 	checkResult("PUT", url, expected, t)
 
@@ -403,7 +403,7 @@ func TestSaveAsPlaylistNoPlayback(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url := ts.URL + "/save/" + url.QueryEscape("sample_playlist")
+	url := ts.URL + "/save/" + escape("sample_playlist")
 	expected := `{"Code":1,"Message":"Queue is empty and cannot be saved as playlist"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -413,10 +413,10 @@ func TestSaveAsPlaylistWrongName(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	play_url := ts.URL + "/play/" + escape("test_sounds")
 	performCall("PUT", play_url)
 
-	url := ts.URL + "/save/" + url.QueryEscape("abc/sample_playlist")
+	url := ts.URL + "/save/" + escape("abc/sample_playlist")
 	expected := `{"Code":1,"Message":"Cannot save playlist"}`
 	checkResult("PUT", url, expected, t)
 }
@@ -441,7 +441,7 @@ func TestGetQueueInfo(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	play_url := ts.URL + "/play/" + url.QueryEscape("test_sounds")
+	play_url := ts.URL + "/play/" + escape("test_sounds")
 	performCall("PUT", play_url)
 
 	url := ts.URL + "/queueinfo"
@@ -593,11 +593,11 @@ func TestPlayAfterPlay(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url1 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep36.mp3")
+	url1 := ts.URL + "/play/" + escape("test_sounds/beep36.mp3")
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep36.mp3"]}`
 	checkResult("PUT", url1, expected, t)
 
-	url2 := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep28.mp3")
+	url2 := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
 	expected2 := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3"]}`
 	checkResult("PUT", url2, expected2, t)
 }
@@ -618,7 +618,7 @@ func TestPlayPlaylistShortNames(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	url1 := ts.URL + "/play/" + url.QueryEscape("test_pl_short_names/sample_playlist_short.m3u")
+	url1 := ts.URL + "/play/" + escape("test_pl_short_names/sample_playlist_short.m3u")
 	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
 	checkResult("PUT", url1, expected, t)
 }
@@ -628,7 +628,7 @@ func TestResumeAfterStop(t *testing.T) {
 	ts := httptest.NewServer(InitService())
 	defer ts.Close()
 	defer WaitEnd()
-	playUrl := ts.URL + "/play/" + url.QueryEscape("test_sounds/beep36.mp3")
+	playUrl := ts.URL + "/play/" + escape("test_sounds/beep36.mp3")
 	performCall("PUT", playUrl)
 
 	stopUrl := ts.URL + "/stop"
@@ -637,4 +637,8 @@ func TestResumeAfterStop(t *testing.T) {
 	resumeUrl := ts.URL + "/resume"
 	expected2 := `{"Code":1,"Message":"Cannot resume. No song was paused"}`
 	checkResult("POST", resumeUrl, expected2, t)
+}
+
+func escape(urlPath string) string {
+	return strings.Replace(url.QueryEscape(urlPath), "+", "%20", -1)
 }

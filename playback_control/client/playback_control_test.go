@@ -76,7 +76,7 @@ func TestPerformCallPut(t *testing.T) {
 	defer ts.Close()
 	defer player.WaitEnd()
 
-	responseContainer, err := performCall("PUT", ts.URL+"/play/"+url.QueryEscape("../../player/test_sounds/beep9.mp3"))
+	responseContainer, err := performCall("PUT", ts.URL+"/play/"+escape("../../player/test_sounds/beep9.mp3"))
 	if err != nil {
 		t.Errorf(err.Error())
 	}
@@ -132,4 +132,9 @@ func TestPerformAction(t *testing.T) {
 beep9.mp3`
 
 	checkStr(t, expected, found)
+}
+
+func TestEscape(t *testing.T) {
+	found := escape(`/abc cde\fgh.ijk`)
+	checkStr(t, "%2Fabc%20cde%5Cfgh.ijk", found)
 }

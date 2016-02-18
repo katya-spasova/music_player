@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 )
 
 type Client struct {
@@ -70,7 +71,7 @@ func (client *Client) formUrl(action string, name string) (requestUrl string) {
 	case "add",
 		"play",
 		"save":
-		requestUrl = client.Host + action + "/" + url.QueryEscape(name)
+		requestUrl = client.Host + action + "/" + escape(name)
 		fmt.Println("requestUrl " + requestUrl)
 	}
 
@@ -140,4 +141,8 @@ func getDisplayMessage(response ResponseContainer, err error) string {
 		}
 		return buffer.String()
 	}
+}
+
+func escape(urlPath string) string {
+	return strings.Replace(url.QueryEscape(urlPath), "+", "%20", -1)
 }
