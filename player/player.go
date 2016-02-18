@@ -221,6 +221,9 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	player.state.chain = chain
 	player.state.status = Playing
 	player.state.startTime = time.Now()
+	if trim > 0 {
+		player.state.startTime.Add(-trim * time.Second)
+	}
 	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
