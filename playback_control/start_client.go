@@ -31,19 +31,20 @@ func isValidAction(action string) bool {
 func main() {
 	action := flag.String("action", "stop",
 		"Use one of: play/stop/pause/resume/next/previous/add/songinfo/queueinfo/playlists/save")
+
+	name := flag.String("name", "", "Name of a song, a directory or a playlist")
+
+	specifiedHost := flag.String("host", defaultHost, "Specify the host")
+	flag.Parse()
+
 	if !isValidAction(*action) {
 		fmt.Println(`Unknown action. Use one of: play/stop/pause/resume/next
 		/previous/add/songinfo/queueinfo/playlists/save`)
 	}
 
-	name := flag.String("name", "", "Name of a song, a directory or a playlist")
-
 	if (*action == "play" || *action == "add" || *action == "save") && len(*name) == 0 {
 		fmt.Println("file, directory or playlist name is required with this action")
 	}
-
-	specifiedHost := flag.String("host", defaultHost, "Specify the host")
-	flag.Parse()
 
 	var h = *specifiedHost
 	if strings.HasSuffix("/", h) {
