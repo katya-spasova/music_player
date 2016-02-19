@@ -51,8 +51,8 @@ music_player will let you work with:
 
 ## How do I use music_player?
 
-music_player comes with a client, called playback_control. Go to music_player directory and
-start it. Check the --help to see how it is used.
+music_player comes with a client, called playback_control. Go to music_player/playback_control directory and execute
+*go run start_client.go -help* (or build it first if you wish).
 
 You can use music_player by directly sending HTTP request to it. Check below to see the API.
 
