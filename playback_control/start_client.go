@@ -40,10 +40,12 @@ func main() {
 	if !isValidAction(*action) {
 		fmt.Println(`Unknown action. Use one of: play/stop/pause/resume/next
 		/previous/add/songinfo/queueinfo/playlists/save`)
+		return
 	}
 
 	if (*action == "play" || *action == "add" || *action == "save") && len(*name) == 0 {
 		fmt.Println("file, directory or playlist name is required with this action")
+		return
 	}
 
 	var h = *specifiedHost
