@@ -95,7 +95,6 @@ func (client *Client) formUrl(action string, name string) (requestUrl string) {
 		"play",
 		"save":
 		requestUrl = client.Host + action + "/" + escape(name)
-		fmt.Println("requestUrl " + requestUrl)
 	}
 
 	return requestUrl

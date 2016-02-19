@@ -45,8 +45,6 @@ func main() {
 	specifiedHost := flag.String("host", defaultHost, "Specify the host")
 	flag.Parse()
 
-	fmt.Println(*name)
-
 	var h = *specifiedHost
 	if strings.HasSuffix("/", h) {
 		h = h + "/"
