@@ -474,3 +474,21 @@ func TestListPlaylistEmptyDir(t *testing.T) {
 	os.RemoveAll(player.playlistsDir)
 	os.Rename("tmp", player.playlistsDir)
 }
+
+func TestPlayPauseResumePause(t *testing.T) {
+	fmt.Println("TestPlayPauseResumePause")
+
+	player = Player{playQueueMutex: &sync.Mutex{}}
+	err := player.init()
+	if err != nil {
+		t.Fatalf(err.Error())
+	}
+	defer player.waitEnd()
+	player.play("test_sounds/beep28.mp3")
+	time.Sleep(1 * time.Second)
+	player.pause()
+	player.resume()
+	time.Sleep(1 * time.Second)
+	player.pause()
+	checkDuration(t, 2, 2.1, player.state.durationPaused.Seconds())
+}

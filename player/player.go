@@ -222,7 +222,8 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	player.state.status = Playing
 	player.state.startTime = time.Now()
 	if trim > 0 {
-		player.state.startTime.Add(time.Duration(-trim) * time.Second)
+		var milis int64 = int64(-trim * 1000)
+		player.state.startTime = player.state.startTime.Add(time.Duration(milis) * time.Millisecond)
 	}
 	player.Unlock()
 
