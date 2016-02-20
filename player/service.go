@@ -240,7 +240,8 @@ func Start() {
 	mux := InitService()
 	// init sox
 	if !sox.Init() {
-		fmt.Errorf("sox is not found")
+		fmt.Println("sox is not found")
+		return
 	}
 	// clean up
 	defer sox.Quit()
