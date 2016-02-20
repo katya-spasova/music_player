@@ -33,6 +33,7 @@ func (client *Client) getAlive() string {
 }
 
 // PerformAction uses the entered action and name to construct HTTP request and send it to music_player
+// Constructs a message from the json response and displays it
 func (client *Client) PerformAction(action string, name string) string {
 	path := name
 	if action != "save" && client.isLocalhostCall() {
