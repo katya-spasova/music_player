@@ -250,8 +250,11 @@ func (player *musicPlayer) playSingleFile(filename string, trim float64, ch chan
 // play plays a file, directory or playlists
 // Returns error if nothing is to be played
 func (player *musicPlayer) play(playItem string) ([]string, error) {
-	player.stop()
 	player.Lock()
+
+	player.stopFlow()
+	player.state.queue = make([]string, 0)
+	player.state.current = 0
 
 	items, err := player.addPlayItem(playItem)
 	player.Unlock()
@@ -440,7 +443,9 @@ func (player *musicPlayer) pause() (string, error) {
 // stopFlow deletes all effects in the chain so that flow stops
 func (player *musicPlayer) stopFlow() {
 	// Warning: never call this if the player is not locked
-	player.state.chain.DeleteAll()
+	if player.state.chain != nil {
+		player.state.chain.DeleteAll()
+	}
 	player.state.durationPaused = time.Since(player.state.startTime)
 	player.state.status = paused
 }
