@@ -1,3 +1,4 @@
+// Package client provides the primitives for a command-line client for music_player
 package client
 
 import (
@@ -12,10 +13,12 @@ import (
 	"strings"
 )
 
+// Client struct holds the host on which music_player is running
 type Client struct {
 	Host string
 }
 
+// getAlive checks if music_player is running
 func (client *Client) getAlive() string {
 	response, err := http.Get(client.Host)
 	if err != nil {
@@ -29,6 +32,7 @@ func (client *Client) getAlive() string {
 	return text
 }
 
+// PerformAction uses the entered action and name to construct HTTP request and send it to music_player
 func (client *Client) PerformAction(action string, name string) string {
 	path := name
 	if action != "save" && client.isLocalhostCall() {
@@ -48,6 +52,7 @@ func (client *Client) PerformAction(action string, name string) string {
 	return getDisplayMessage(response, err)
 }
 
+// isLocalhostCall checks if music_player's host is localhost
 func (client *Client) isLocalhostCall() bool {
 	return strings.HasPrefix(client.Host, "http://localhost") ||
 		strings.HasPrefix(client.Host, "https://localhost") ||
@@ -55,6 +60,8 @@ func (client *Client) isLocalhostCall() bool {
 		strings.HasPrefix(client.Host, "https://127.")
 }
 
+// determineHttpMethod determines which method (GET, POST or PUT) is going to be used for the
+// HTTP request
 func determineHttpMethod(action string) (method string) {
 	switch action {
 	case
@@ -78,6 +85,7 @@ func determineHttpMethod(action string) (method string) {
 	return method
 }
 
+// formUrl uses the entered action and name to construct the URL that is going to call music_player
 func (client *Client) formUrl(action string, name string) (requestUrl string) {
 	switch action {
 	case
@@ -100,13 +108,15 @@ func (client *Client) formUrl(action string, name string) (requestUrl string) {
 	return requestUrl
 }
 
-//ResponseContainer - type used for success json response
+// ResponseContainer struct is used to hold the unmarshalled json response of music_player
+// Contains code (0 for succes, 1 for failure), message and a list of file names
 type ResponseContainer struct {
 	Code    int
 	Message string
 	Data    []string
 }
 
+// performCall send HTTP request to music_player, gets json the response and unmarshals it
 func performCall(method string, url string) (ResponseContainer, error) {
 	var res *http.Response
 	var err error
@@ -145,6 +155,7 @@ func performCall(method string, url string) (ResponseContainer, error) {
 	return container, nil
 }
 
+// getDisplayMessage creates a string message based on the response of music_player
 func getDisplayMessage(response ResponseContainer, err error) string {
 	if err != nil {
 		return err.Error()
@@ -165,6 +176,7 @@ func getDisplayMessage(response ResponseContainer, err error) string {
 	}
 }
 
+// escape does the escaping of query string
 func escape(urlPath string) string {
 	return strings.Replace(url.QueryEscape(urlPath), "+", "%20", -1)
 }

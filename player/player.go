@@ -1,3 +1,4 @@
+// Package player provides the implementation of music_player
 package player
 
 import "github.com/krig/go-sox"
@@ -12,8 +13,10 @@ import (
 	"time"
 )
 
+// supported playlist type
 const playlistsExtension = ".m3u"
 
+// supportedExtensions are the file types music_player works with
 var supportedExtensions []string = []string{
 	"mp3",
 	"ogg",
@@ -96,15 +99,17 @@ var supportedExtensions []string = []string{
 	"xa",
 }
 
-type Player struct {
+// musicPlayer struct represents the player. Holds player's state, playlist's directory and mutexes for synchronisation
+type musicPlayer struct {
 	sync.Mutex
-	state          *State
+	state          *state
 	playQueueMutex *sync.Mutex
 	playlistsDir   string
 }
 
-// InOut struct holds the state of the player
-type State struct {
+// State struct holds the state of the player i.e. chain of effects, playing status, playing start time of a song,
+// player's song queue, current song
+type state struct {
 	chain          *sox.EffectsChain
 	status         int
 	startTime      time.Time
@@ -113,19 +118,19 @@ type State struct {
 	current        int
 }
 
+// player's possible statuses
 const (
-	Playing = iota
-	Paused
-	Waiting
-	Cleared
+	playing = iota
+	paused
+	waiting
 )
 
-// Starts sox and the initialises player's state
-func (player *Player) init() error {
+// init initialises player's state
+func (player *musicPlayer) init() error {
 	player.Lock()
 	defer player.Unlock()
-	player.state = new(State)
-	player.state.status = Waiting
+	player.state = new(state)
+	player.state.status = waiting
 	player.state.current = 0
 	player.state.queue = make([]string, 0)
 	wd, err := os.Getwd()
@@ -137,15 +142,15 @@ func (player *Player) init() error {
 	return nil
 }
 
-// Used to wait the end of playing queue
-func (player *Player) waitEnd() {
+// waitEnd is used to wait the end of playing queue
+func (player *musicPlayer) waitEnd() {
 	player.playQueueMutex.Lock()
 	defer player.playQueueMutex.Unlock()
 }
 
-// Plays single file
+// playSingleFile plays single file
 // Returns error if file could not be played
-func (player *Player) playSingleFile(filename string, trim float64, ch chan error) error {
+func (player *musicPlayer) playSingleFile(filename string, trim float64, ch chan error) error {
 	// Open the input file (with default parameters)
 	in := sox.OpenRead(filename)
 	if in == nil {
@@ -219,7 +224,7 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 
 	player.Lock()
 	player.state.chain = chain
-	player.state.status = Playing
+	player.state.status = playing
 	player.state.startTime = time.Now()
 	if trim > 0 {
 		var milis int64 = int64(-trim * 1000)
@@ -228,23 +233,23 @@ func (player *Player) playSingleFile(filename string, trim float64, ch chan erro
 	player.Unlock()
 
 	// Flow samples through the effects processing chain until EOF is reached.
-	// Flow process not locked as it must be possible to delete chain effects
+	// Flow process is not locked as it must be possible to delete chain effects
 	// while Flow is being executed
-	// sox crashes sometimes(rarely)
+	// note: sox crashes at this step sometimes(rarely)
 	chain.Flow()
 
 	player.Lock()
-	if player.state.status == Playing {
-		player.state.status = Waiting
+	if player.state.status == playing {
+		player.state.status = waiting
 	}
 	player.Unlock()
 
 	return nil
 }
 
-// Plays a file, directory or playlists
+// play plays a file, directory or playlists
 // Returns error if nothing is to be played
-func (player *Player) play(playItem string) ([]string, error) {
+func (player *musicPlayer) play(playItem string) ([]string, error) {
 	player.stop()
 	player.Lock()
 
@@ -261,9 +266,9 @@ func (player *Player) play(playItem string) ([]string, error) {
 	return items, err
 }
 
-// Adds a file, directory or playlist to the play queue
+// addPlayItem adds a file, directory or playlist to the play queue
 // Returns the names of the added songs or error if nothing was added
-func (player *Player) addPlayItem(playItem string) ([]string, error) {
+func (player *musicPlayer) addPlayItem(playItem string) ([]string, error) {
 	// is it file or directory
 	fileInfo, err := os.Stat(playItem)
 	if os.IsNotExist(err) {
@@ -309,10 +314,10 @@ func (player *Player) addPlayItem(playItem string) ([]string, error) {
 	return items, nil
 }
 
-// Adds a file or playlist items to the play queue
+// addRegularFile adds a file or playlist items to the play queue
 // Skips the non supported files
 // Returns the names of the added files
-func (player *Player) addRegularFile(playItem string) []string {
+func (player *musicPlayer) addRegularFile(playItem string) []string {
 	items := make([]string, 0)
 	if strings.HasSuffix(playItem, playlistsExtension) {
 		file, err := os.Open(playItem)
@@ -347,9 +352,9 @@ func (player *Player) addRegularFile(playItem string) []string {
 	return items
 }
 
-// Adds a single file to the player queue
+// addFile adds a single file to the player queue
 // Checks if file type is supported
-func (player *Player) addFile(fileName string) (string, error) {
+func (player *musicPlayer) addFile(fileName string) (string, error) {
 	if !isSupportedType(fileName) {
 		return "", errors.New(format_not_supported_msg)
 	}
@@ -357,7 +362,7 @@ func (player *Player) addFile(fileName string) (string, error) {
 	return fileName, nil
 }
 
-// Checks if the file type is supported
+// isSupportedType checks if the file type is supported
 func isSupportedType(fileName string) bool {
 	parts := strings.Split(fileName, ".")
 	extension := parts[len(parts)-1]
@@ -373,20 +378,20 @@ func isSupportedType(fileName string) bool {
 	return supported
 }
 
-// Plays the songs in the queue from the current one on
+// playQueue plays the songs in the queue from the current one on
 // Trims the song if it was paused
-func (player *Player) playQueue(trim float64, ch chan error) {
+func (player *musicPlayer) playQueue(trim float64, ch chan error) {
 	player.playQueueMutex.Lock()
 	defer player.playQueueMutex.Unlock()
 	play := true
 	first := true
 	player.Lock()
-	player.state.status = Waiting
+	player.state.status = waiting
 	player.Unlock()
 	for play {
 		var fileName string
 		player.Lock()
-		if player.state.status == Paused {
+		if player.state.status == paused {
 			play = false
 		} else {
 			index := player.state.current
@@ -395,7 +400,7 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 			} else {
 				play = false
 				player.state.current = 0
-				player.state.status = Waiting
+				player.state.status = waiting
 			}
 		}
 		player.Unlock()
@@ -411,7 +416,7 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 			trim = 0
 
 			player.Lock()
-			if player.state.status == Waiting {
+			if player.state.status == waiting {
 				player.state.current += 1
 			}
 			player.Unlock()
@@ -419,33 +424,33 @@ func (player *Player) playQueue(trim float64, ch chan error) {
 	}
 }
 
-// Pauses the playback
+// pause pauses the playback
 // Returns the name of the paused song or error if player was playing nothing
-func (player *Player) pause() (string, error) {
+func (player *musicPlayer) pause() (string, error) {
 	player.Lock()
 	defer player.Unlock()
 
-	if player.state.status != Playing {
+	if player.state.status != playing {
 		return "", errors.New(cannot_pause_msg)
 	}
 	player.stopFlow()
 	return player.state.queue[player.state.current], nil
 }
 
-// Deletes all effects in the chain so that flow stops
-func (player *Player) stopFlow() {
+// stopFlow deletes all effects in the chain so that flow stops
+func (player *musicPlayer) stopFlow() {
 	// Warning: never call this if the player is not locked
 	player.state.chain.DeleteAll()
 	player.state.durationPaused = time.Since(player.state.startTime)
-	player.state.status = Paused
+	player.state.status = paused
 }
 
-// Resumes the playback
+// resume resumes the playback
 // Returns  the name of the resumed song or error is player was not paused
-func (player *Player) resume() (string, error) {
+func (player *musicPlayer) resume() (string, error) {
 	player.Lock()
 
-	if player.state.status != Paused || player.state.current >= len(player.state.queue) {
+	if player.state.status != paused || player.state.current >= len(player.state.queue) {
 		player.Unlock()
 		return "", errors.New(cannot_resume_msg)
 	}
@@ -461,16 +466,16 @@ func (player *Player) resume() (string, error) {
 	return songToResume, err
 }
 
-// Adds a song to the queue
+// addToQueue adds a song to the queue
 // Starts playing if player is in waiting state
 // Returns added songs or error if nothing was added
-func (player *Player) addToQueue(playItem string) ([]string, error) {
+func (player *musicPlayer) addToQueue(playItem string) ([]string, error) {
 	player.Lock()
 
 	items, err := player.addPlayItem(playItem)
 
 	//start playing if in Waiting status
-	if player.state.status == Waiting {
+	if player.state.status == waiting {
 		player.Unlock()
 		ch := make(chan error)
 		defer close(ch)
@@ -485,27 +490,27 @@ func (player *Player) addToQueue(playItem string) ([]string, error) {
 	return items, err
 }
 
-// Stops the playback and clears the player's state
-func (player *Player) stop() {
+// stop stops the playback and clears the player's state
+func (player *musicPlayer) stop() {
 	player.Lock()
 	defer player.Unlock()
 	if player.state != nil {
 		if player.state.chain != nil {
 			player.state.chain.DeleteAll()
 		}
-		player.state.status = Paused
+		player.state.status = paused
 		player.state.current = 0
 		player.state.queue = make([]string, 0)
 	}
 }
 
-// Plays the next song from the queue
+// next plays the next song from the queue
 // Returns the name of the song or error if there is no next song
-func (player *Player) next() (string, error) {
+func (player *musicPlayer) next() (string, error) {
 	player.Lock()
 	var songToResume string
 	if player.state.current < len(player.state.queue)-1 {
-		if player.state.status == Playing {
+		if player.state.status == playing {
 			player.stopFlow()
 		}
 		player.state.current += 1
@@ -525,13 +530,13 @@ func (player *Player) next() (string, error) {
 	return songToResume, err
 }
 
-// Plays the previous song from the queue
+// previous plays the previous song from the queue
 // Returns the name of the song or an error if there is no previous song
-func (player *Player) previous() (string, error) {
+func (player *musicPlayer) previous() (string, error) {
 	player.Lock()
 	var songToResume string
 	if player.state.current > 0 {
-		if player.state.status == Playing {
+		if player.state.status == playing {
 			player.stopFlow()
 		}
 		player.state.current -= 1
@@ -550,9 +555,9 @@ func (player *Player) previous() (string, error) {
 	return songToResume, err
 }
 
-// Gets the name of the current song
+// getCurrentSongInfo gets the name of the current song
 // Returns the name of the current song or error if there is no current song
-func (player *Player) getCurrentSongInfo() (string, error) {
+func (player *musicPlayer) getCurrentSongInfo() (string, error) {
 	player.Lock()
 	defer player.Unlock()
 	if player.state.current < len(player.state.queue) {
@@ -561,9 +566,9 @@ func (player *Player) getCurrentSongInfo() (string, error) {
 	return "", errors.New(cannot_get_info_msg)
 }
 
-// Saves the contents of the queue as a playlist
+// saveAsPlaylist saves the contents of the queue as a playlist
 // Returns the name of the playlist or an error if the playlist could not be saved
-func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
+func (player *musicPlayer) saveAsPlaylist(playlistName string) (string, error) {
 	songs, err := player.getQueueInfo()
 	if err != nil {
 		return "", errors.New(cannot_save_empty_queue_msg)
@@ -597,9 +602,9 @@ func (player *Player) saveAsPlaylist(playlistName string) (string, error) {
 	return name, nil
 }
 
-// Returns all playlist names from the dedicated directory
+// listPlaylists returns all playlist names from the dedicated directory
 // or error if no playlists are found
-func (player *Player) listPlaylists() ([]string, error) {
+func (player *musicPlayer) listPlaylists() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
 	//only the playlists in playlist directory is exposed
@@ -629,9 +634,9 @@ func (player *Player) listPlaylists() ([]string, error) {
 	return playlists, nil
 }
 
-// Gets the queue info
+// getQueueInfo gets the queue info
 // Returns all filenames that are currently in the queue or error if queue is empty
-func (player *Player) getQueueInfo() ([]string, error) {
+func (player *musicPlayer) getQueueInfo() ([]string, error) {
 	player.Lock()
 	defer player.Unlock()
 	if len(player.state.queue) == 0 {

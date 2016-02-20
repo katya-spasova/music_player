@@ -9,6 +9,7 @@ import (
 
 const defaultHost = "http://localhost:8765/"
 
+// isValidAction checks if entered action is a valid music_player's action
 func isValidAction(action string) bool {
 	switch action {
 	case
@@ -28,6 +29,7 @@ func isValidAction(action string) bool {
 	return false
 }
 
+// main is endpoint for the music_player's client
 func main() {
 	action := flag.String("action", "stop",
 		"Use one of: play/stop/pause/resume/next/previous/add/songinfo/queueinfo/playlists/save")

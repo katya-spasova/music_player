@@ -46,9 +46,11 @@ const queue_saved_as_playlist = "The queue is saved as a playlist"
 const playlists_info = "A list of all saved playlists"
 const queue_info = "Queue content"
 
-// ResponseContainer - type used for json response
+// ResponseContainer defines the format of the web service's response
+// It contains code - 0 for success and 1 for error, message that explains actions is performed
+// and data which is a list of file names
 type ResponseContainer struct {
-	// Error code or 0 for Success
+	// 0 for success, 1 for failure
 	Code int
 	// Error message or Info message
 	Message string
@@ -56,7 +58,7 @@ type ResponseContainer struct {
 	Data []string `json:"Data,omitempty"`
 }
 
-// Writes a response
+// writeHttpResponse writes response
 func writeHttpResponse(w http.ResponseWriter, container ResponseContainer) {
 	message, err1 := json.Marshal(container)
 	if err1 != nil {
@@ -71,25 +73,26 @@ func writeHttpResponse(w http.ResponseWriter, container ResponseContainer) {
 	}
 }
 
-// Wraps data and error in ResponseContainer
+// getResponseContainer wraps data and error in ResponseContainer
 func getResponseContainer(data []string, err error) ResponseContainer {
 	container := ResponseContainer{}
 	if err != nil {
-		container.Code = 1
+		container.Code = failure
 		container.Message = err.Error()
 	} else {
-		container.Code = 0
+		container.Code = success
 		container.Data = data
 	}
 
 	return container
 }
 
-// Shows if the service is alive
+// alive shows if the service is alive
 func alive(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "I'm alive")
 }
 
+// playerToServiceResponse constructs the response in the format of the service and writes it
 func playerToServiceResponse(w http.ResponseWriter, data []string, err error, successMessage string) {
 	container := getResponseContainer(filterPath(data), err)
 	if err == nil {
@@ -98,6 +101,7 @@ func playerToServiceResponse(w http.ResponseWriter, data []string, err error, su
 	writeHttpResponse(w, container)
 }
 
+// filterPath removes the path from list of filenames. Only the part after the last slash remains
 func filterPath(data []string) []string {
 	filtered := make([]string, 0, len(data))
 	for _, element := range data {
@@ -175,7 +179,7 @@ func addToQueue(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	playerToServiceResponse(w, data, err, added_to_queue_info)
 }
 
-// Saves the current queue as a playlist
+// saveAsPlaylist saves the current queue as a playlist
 // The result json contains the filename of the playlist
 // or error message if queue is empty or playlist cannot be saved
 func saveAsPlaylist(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -184,7 +188,7 @@ func saveAsPlaylist(ctx context.Context, w http.ResponseWriter, r *http.Request)
 	playerToServiceResponse(w, []string{data}, err, queue_saved_as_playlist)
 }
 
-// List the saved playlists
+// listPlaylists list the saved playlists
 // The result json contains the filenames of the already saved playlists
 // or error message of no playlists exit
 func listPlaylists(w http.ResponseWriter, r *http.Request) {
@@ -192,7 +196,7 @@ func listPlaylists(w http.ResponseWriter, r *http.Request) {
 	playerToServiceResponse(w, data, err, playlists_info)
 }
 
-// Displays all songs in the queue
+// getQueueInfo Displays all songs in the queue
 // The result json contains all filenames in the current queue
 // or an error message if queue is empty
 func getQueueInfo(w http.ResponseWriter, r *http.Request) {
@@ -200,10 +204,11 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 	playerToServiceResponse(w, data, err, queue_info)
 }
 
-var player Player
+var player musicPlayer
 
+//InitService creates a mux and initializes handle functions for music_player
 func InitService() *goji.Mux {
-	player = Player{playQueueMutex: &sync.Mutex{}}
+	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
 	player.init()
 
 	// service handle functions
@@ -224,11 +229,12 @@ func InitService() *goji.Mux {
 	return mux
 }
 
+// WaitEnd is used to wait the end of the playing the songs in the play queue
 func WaitEnd() {
 	player.waitEnd()
 }
 
-// Start - starts the web service
+// Start starts the music_player web service
 func Start() {
 	// init the player
 	mux := InitService()
