@@ -9,6 +9,7 @@ import (
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
+	"os"
 	"strings"
 	"sync"
 )
@@ -206,6 +207,10 @@ func getQueueInfo(w http.ResponseWriter, r *http.Request) {
 
 var player musicPlayer
 
+func servePage(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "secret/secret.html")
+}
+
 //InitService creates a mux and initializes handle functions for music_player
 func InitService() *goji.Mux {
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
@@ -225,6 +230,7 @@ func InitService() *goji.Mux {
 	mux.HandleFuncC(pat.Put("/save/:name"), saveAsPlaylist)
 	mux.HandleFunc(pat.Get("/playlists"), listPlaylists)
 	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo)
+	mux.HandleFunc(pat.Get("/secret"), servePage)
 
 	return mux
 }

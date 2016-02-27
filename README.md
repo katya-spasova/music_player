@@ -1,7 +1,5 @@
 # music_player
 
-    Note: music_player is still under development and might not always work properly
-
 ## What is music_player?
 
 music_player is a music player and a RESTful web service that provides control for the playback.
