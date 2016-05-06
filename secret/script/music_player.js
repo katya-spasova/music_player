@@ -35,6 +35,10 @@ function init() {
         event.preventDefault();
         queueInfo();
     });
+    document.getElementById("save").addEventListener("click", function(event){
+        event.preventDefault();
+        savePlaylist();
+    });
 }
 
 function playSong() {
@@ -87,6 +91,11 @@ function queueInfo() {
 
 function getPlaylists() {
     sendToPlayer("GET", "playlists", updateContent)
+}
+
+function savePlaylist() {
+    sendToPlayer("PUT", "save/");
+    getPlaylists();
 }
 
 function sendToPlayer(method, action, afterFunction, cb) {
