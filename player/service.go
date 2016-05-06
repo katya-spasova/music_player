@@ -209,6 +209,14 @@ func servePage(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "secret/secret.html")
 }
 
+func serveCss(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "secret/css/music_player.css")
+}
+
+func serveJs(w http.ResponseWriter, r *http.Request) {
+	http.ServeFile(w, r, "secret/script/music_player.js")
+}
+
 //InitService creates a mux and initializes handle functions for music_player
 func InitService() *goji.Mux {
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
@@ -229,6 +237,8 @@ func InitService() *goji.Mux {
 	mux.HandleFunc(pat.Get("/playlists"), listPlaylists)
 	mux.HandleFunc(pat.Get("/queueinfo"), getQueueInfo)
 	mux.HandleFunc(pat.Get("/secret"), servePage)
+	mux.HandleFunc(pat.Get("/css/music_player.css"), serveCss)
+	mux.HandleFunc(pat.Get("/script/music_player.js"), serveJs)
 
 	return mux
 }
