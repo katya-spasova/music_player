@@ -38,51 +38,63 @@ function init() {
 }
 
 function playSong() {
-    sendToPlayer("PUT", "play/", doNothing);
+    sendToPlayer("PUT", "play/");
+    currentSong();
 }
 
 function addSong() {
-    sendToPlayer("POST", "add/", doNothing);
+    sendToPlayer("POST", "add/");
+    currentSong();
 }
 
 function stopSong() {
-    sendToPlayer("PUT", "stop", doNothing);
+    sendToPlayer("PUT", "stop");
 }
 
 function previousSong() {
-    sendToPlayer("POST", "previous", doNothing);
+    sendToPlayer("POST", "previous");
+    currentSong();
 }
 
 function nextSong() {
-    sendToPlayer("POST", "next", doNothing);
+    sendToPlayer("POST", "next");
+    currentSong();
 }
 
 function pauseSong() {
-    sendToPlayer("POST", "pause", doNothing);
+    sendToPlayer("POST", "pause");
 }
 
 function resumeSong() {
-    sendToPlayer("POST", "resume", doNothing);
+    sendToPlayer("POST", "resume");
+}
+
+function currentSongPeriodic() {
+    sendToPlayer("GET", "songinfo", updateContent,
+        function() {
+            setTimeout(currentSongPeriodic, 5000);
+        }
+    )
 }
 
 function currentSong() {
-    sendToPlayer("GET", "songinfo", doNothing)
+    sendToPlayer("GET", "songinfo", updateContent);
 }
 
 function queueInfo() {
-    sendToPlayer("GET", "queueinfo", updateContent)
+    sendToPlayer("GET", "queueinfo", updateContent);
 }
 
 function getPlaylists() {
     sendToPlayer("GET", "playlists", updateContent)
 }
 
-function sendToPlayer(method, action, afterFunction) {
+function sendToPlayer(method, action, afterFunction, cb) {
     var nameElement = document.getElementById("name");
     var name = isNameApplicable(action) ? encodeURIComponent(nameElement.value) : "";
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
-        afterFunction(xhttp, getElementId(action));
+        afterFunction && afterFunction(xhttp, getElementId(action), cb);
     }
     xhttp.open(method, action.concat(name), true);
     xhttp.send();
@@ -95,9 +107,10 @@ function isNameApplicable(action) {
     return false;
 }
 
-function updateContent(xhttp, elementId) {
+function updateContent(xhttp, elementId, cb) {
     if (xhttp.readyState == 4 && xhttp.status == 200) {
         document.getElementById(elementId).innerHTML = xhttp.responseText;
+        cb && cb();
     }
 }
 
@@ -109,11 +122,15 @@ function getElementId(action) {
     if (action == "playlists") {
         return "playlists";
     }
-}
 
-function doNothing() {
+    if (action == "songinfo") {
+        return "currentSong";
+    }
 }
 
 document.addEventListener('DOMContentLoaded', function() {
    init();
+   currentSongPeriodic();
+   getPlaylists();
+   queueInfo();
 }, false);
