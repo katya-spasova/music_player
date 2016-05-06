@@ -1,15 +1,13 @@
 package player
 
 import (
-	"fmt"
-	"net/http"
-
 	"encoding/json"
+	"fmt"
 	"github.com/krig/go-sox"
 	"goji.io"
 	"goji.io/pat"
 	"golang.org/x/net/context"
-	"os"
+	"net/http"
 	"strings"
 	"sync"
 )
