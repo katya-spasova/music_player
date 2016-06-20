@@ -72,6 +72,7 @@ And of course you can write your own client for any platform you like.
 | PUT host:8765/save/<playlist> | saves the play queue to a playlist |
 | GET host:8765/playlists | returns a list of all saved playlists |
 | GET host:8765/queueinfo | returns list of all songs in the queue |
+| POST host:8765/jump/<index> | plays a song with specific index from the queue |
 
 ### JSON Response
 The json response in case the operation is successful look similar to the following example:
@@ -127,6 +128,7 @@ Code "0" is used for success and "1" failure
 | 1 | Cannot save playlist |
 | 1 | Queue is empty and cannot be saved as playlist |
 | 1 | Cannot get queue info. Queue is empty |
+| 1 | Song not available |
 
 ## Why would I use music_player?
 

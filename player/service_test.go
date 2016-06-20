@@ -639,6 +639,42 @@ func TestResumeAfterStop(t *testing.T) {
 	checkResult("POST", resumeUrl, expected2, t)
 }
 
+func TestJump(t *testing.T) {
+	fmt.Println("TestJump")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	play_url := ts.URL + "/play/" + escape("test_sounds")
+	performCall("PUT", play_url)
+
+	url := ts.URL + "/jump/1"
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep36.mp3"]}`
+	checkResult("POST", url, expected, t)
+}
+
+func TestInvalidJump(t *testing.T) {
+	fmt.Println("TestInvalidJump")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	play_url := ts.URL + "/play/" + escape("test_sounds/beep28.mp3")
+	performCall("PUT", play_url)
+
+	url := ts.URL + "/jump/1"
+	expected := `{"Code":1,"Message":"Song not available"}`
+	checkResult("POST", url, expected, t)
+}
+
+func TestJumpNoPlayback(t *testing.T) {
+	fmt.Println("TestJumpNoPlayback")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	url := ts.URL + "/jump/0"
+	expected := `{"Code":1,"Message":"Song not available"}`
+	checkResult("POST", url, expected, t)
+}
+
 func escape(urlPath string) string {
 	return strings.Replace(url.QueryEscape(urlPath), "+", "%20", -1)
 }

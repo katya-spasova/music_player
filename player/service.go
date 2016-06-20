@@ -33,6 +33,7 @@ const cannot_get_info_msg = "There is no current song in the queue"
 const cannot_save_playlist_msg = "Cannot save playlist"
 const cannot_save_empty_queue_msg = "Queue is empty and cannot be saved as playlist"
 const cannot_get_queue_info_msg = "Cannot get queue info. Queue is empty"
+const cannot_jump_to_song_msg = "Song not available"
 
 const started_playing_info = "Started playing"
 const added_to_queue_info = "Added to queue"
@@ -217,6 +218,12 @@ func serveJs(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "secret/script/music_player.js")
 }
 
+func jump(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	number := pat.Param(ctx, "number")
+	data, err := player.jump(number)
+	playerToServiceResponse(w, []string{data}, err, started_playing_info)
+}
+
 //InitService creates a mux and initializes handle functions for music_player
 func InitService() *goji.Mux {
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
@@ -239,6 +246,7 @@ func InitService() *goji.Mux {
 	mux.HandleFunc(pat.Get("/secret"), servePage)
 	mux.HandleFunc(pat.Get("/css/music_player.css"), serveCss)
 	mux.HandleFunc(pat.Get("/script/music_player.js"), serveJs)
+	mux.HandleFuncC(pat.Post("/jump/:number"), jump)
 
 	return mux
 }

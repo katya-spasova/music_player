@@ -654,3 +654,35 @@ func (player *musicPlayer) getQueueInfo() ([]string, error) {
 	}
 	return copy, nil
 }
+
+// start playing song with index 'number' from the queue
+// Returns the name of the song or error if there is no such song
+func (player *musicPlayer) jump(number string) (string, error) {
+	player.Lock()
+	var songToResume string
+	i, err := strconv.Atoi(number)
+	if err != nil {
+		player.Unlock()
+		return songToResume, errors.New(cannot_jump_to_song_msg)
+	}
+
+	if i > 0 && i < len(player.state.queue)-1 {
+		if player.state.status == playing {
+			player.stopFlow()
+		}
+		player.state.current = i
+		songToResume = player.state.queue[player.state.current]
+
+	} else {
+		player.Unlock()
+		return songToResume, errors.New(cannot_jump_to_song_msg)
+	}
+
+	player.Unlock()
+	ch := make(chan error)
+	defer close(ch)
+	go player.playQueue(0, ch)
+	err = <-ch
+
+	return songToResume, err
+}
