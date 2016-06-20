@@ -44,15 +44,19 @@ function init() {
 function playSong() {
     sendToPlayer("PUT", "play/");
     currentSong();
+    queueInfo();
 }
 
 function addSong() {
     sendToPlayer("POST", "add/");
     currentSong();
+    queueInfo();
 }
 
 function stopSong() {
     sendToPlayer("PUT", "stop");
+    currentSong();
+    queueInfo();
 }
 
 function previousSong() {
@@ -67,10 +71,13 @@ function nextSong() {
 
 function pauseSong() {
     sendToPlayer("POST", "pause");
+    currentSong();
+    queueInfo();
 }
 
 function resumeSong() {
     sendToPlayer("POST", "resume");
+    currentSong();
 }
 
 function currentSongPeriodic() {
