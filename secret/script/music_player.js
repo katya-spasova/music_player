@@ -145,7 +145,7 @@ function updateContentImpl(elementId, responseText) {
         content = res["Data"];
     } else {
         var songs = res["Data"];
-        for (var i = 0; i < songs.length; i++) {
+        for (var i = 0; i < songs != null ? songs.length : 0; i++) {
             content = content + "<div><a href='#' id='" + i + "'>"+ songs[i] +"</a></div>"
         }
     }
@@ -154,9 +154,9 @@ function updateContentImpl(elementId, responseText) {
     document.getElementById(elementId).innerHTML = content;
 
     // add event listeners
-    if (elementId == "queue") {
+    if (res["Code"] > 0 && elementId == "queue") {
         var songs = res["Data"];
-        for (var j = 0; j < songs.length; j++) {
+        for (var j = 0; j < songs != null ? songs.length : 0; j++) {
             document.getElementById(j.toString()).addEventListener("click", function (event) {
                 event.preventDefault();
                 jumpToSong(event.target.id);
