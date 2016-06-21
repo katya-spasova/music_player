@@ -105,6 +105,11 @@ function savePlaylist() {
     getPlaylists();
 }
 
+function jumpToSong(songIndex) {
+    sendToPlayer("POST", "jump/" + songIndex);
+    currentSong();
+}
+
 function sendToPlayer(method, action, afterFunction, cb) {
     var nameElement = document.getElementById("name");
     var name = isNameApplicable(action) ? encodeURIComponent(nameElement.value) : "";
@@ -154,7 +159,7 @@ function updateContentImpl(elementId, responseText) {
         for (var j = 0; j < songs.length; j++) {
             document.getElementById(j.toString()).addEventListener("click", function (event) {
                 event.preventDefault();
-                jumpToSong(event);
+                jumpToSong(event.target.id);
             });
         }
     }
