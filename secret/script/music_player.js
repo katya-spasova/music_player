@@ -136,12 +136,12 @@ function updateContentImpl(elementId, responseText) {
     var content = ""
     if (res["Code"] > 0) {
         content = res["Message"];
-    } else if (elementId != "queueinfo") {
+    } else if (elementId != "queue") {
         content = res["Data"];
     } else {
         var songs = res["Data"];
         for (var i = 0; i < songs.length; i++) {
-            content = content + "<a href='#' id='" + i + "'></a>"
+            content = content + "<div><a href='#' id='" + i + "'>"+ songs[i] +"</a></div>"
         }
     }
 
@@ -149,7 +149,7 @@ function updateContentImpl(elementId, responseText) {
     document.getElementById(elementId).innerHTML = content;
 
     // add event listeners
-    if (elementId == "queueinfo") {
+    if (elementId == "queue") {
         var songs = res["Data"];
         for (var j = 0; j < songs.length; j++) {
             document.getElementById(j.toString()).addEventListener("click", function (event) {
