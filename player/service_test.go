@@ -652,6 +652,32 @@ func TestJump(t *testing.T) {
 	checkResult("POST", url, expected, t)
 }
 
+func TestJumpToFirst(t *testing.T) {
+	fmt.Println("TestJumpToFirst")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	play_url := ts.URL + "/play/" + escape("test_sounds")
+	performCall("PUT", play_url)
+
+	url := ts.URL + "/jump/0"
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep28.mp3"]}`
+	checkResult("POST", url, expected, t)
+}
+
+func TestJumpToLast(t *testing.T) {
+	fmt.Println("TestJumpToLast")
+	ts := httptest.NewServer(InitService())
+	defer ts.Close()
+	defer WaitEnd()
+	play_url := ts.URL + "/play/" + escape("test_sounds")
+	performCall("PUT", play_url)
+
+	url := ts.URL + "/jump/2"
+	expected := `{"Code":0,"Message":"Started playing","Data":["beep9.mp3"]}`
+	checkResult("POST", url, expected, t)
+}
+
 func TestInvalidJump(t *testing.T) {
 	fmt.Println("TestInvalidJump")
 	ts := httptest.NewServer(InitService())
