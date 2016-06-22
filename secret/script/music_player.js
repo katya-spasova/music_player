@@ -116,16 +116,13 @@ function sendToPlayer(method, action, afterFunction, cb) {
     var xhttp = new XMLHttpRequest();
     xhttp.onreadystatechange = function() {
         afterFunction && afterFunction(xhttp, getElementId(action), cb);
-    }
+    };
     xhttp.open(method, action.concat(name), true);
     xhttp.send();
 }
 
 function isNameApplicable(action) {
-    if (action == "play/" || action == "add/" || action == "save/") {
-        return true;
-    }
-    return false;
+    return action == "play/" || action == "add/" || action == "save/";
 }
 
 function updateContent(xhttp, elementId, cb) {
@@ -138,29 +135,33 @@ function updateContent(xhttp, elementId, cb) {
 function updateContentImpl(elementId, responseText) {
     // parse and produce html
     var res = JSON.parse(responseText);
-    var content = ""
+    var content = "";
     if (res["Code"] > 0) {
         content = res["Message"];
-    } else if (elementId != "queue") {
-        content = res["Data"];
-    } else {
+    } else if (elementId == "queue") {
         var songs = res["Data"];
-        for (var i = 0; i < songs != null ? songs.length : 0; i++) {
-            content = content + "<div><a href='#' id='" + i + "'>"+ songs[i] +"</a></div>"
+        if (typeof songs != "undefined") {
+            for (var i = 0; i < songs.length; i++) {
+                content = content + "<div><a href='#' id='" + i + "'>" + songs[i] + "</a></div>"
+            }
         }
+    } else {
+        content = res["Data"];
     }
 
     // update response
     document.getElementById(elementId).innerHTML = content;
 
     // add event listeners
-    if (res["Code"] > 0 && elementId == "queue") {
-        var songs = res["Data"];
-        for (var j = 0; j < songs != null ? songs.length : 0; j++) {
-            document.getElementById(j.toString()).addEventListener("click", function (event) {
-                event.preventDefault();
-                jumpToSong(event.target.id);
-            });
+    if (res["Code"] == 0 && elementId == "queue") {
+        songs = res["Data"];
+        if (typeof songs != "undefined") {
+            for (var j = 0; j < songs.length; j++) {
+                document.getElementById(j.toString()).addEventListener("click", function (event) {
+                    event.preventDefault();
+                    jumpToSong(event.target.id);
+                });
+            }
         }
     }
 }
