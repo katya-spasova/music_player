@@ -361,6 +361,10 @@ func (player *musicPlayer) addFile(fileName string) (string, error) {
 	if !isSupportedType(fileName) {
 		return "", errors.New(format_not_supported_msg)
 	}
+	_, err := os.Stat(fileName)
+	if os.IsNotExist(err) {
+		return "", errors.New(file_not_found_msg)
+	}
 	player.state.queue = append(player.state.queue, fileName)
 	return fileName, nil
 }
