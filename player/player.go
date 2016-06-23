@@ -666,7 +666,7 @@ func (player *musicPlayer) jump(number string) (string, error) {
 		return songToResume, errors.New(cannot_jump_to_song_msg)
 	}
 
-	if i >= 0 && i < len(player.state.queue) {
+	if len(player.state.queue) > 0 && i >= 0 && i < len(player.state.queue) {
 		if player.state.status == playing {
 			player.stopFlow()
 		}

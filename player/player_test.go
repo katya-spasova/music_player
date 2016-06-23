@@ -37,7 +37,7 @@ func TestPlaySingleFile(t *testing.T) {
 	checkIntFatal(t, waiting, player.state.status)
 	start := time.Now()
 	player.playSingleFile("test_sounds/beep9.mp3", 0, nil)
-	checkDuration(t, 0.9, 1.2, time.Since(start).Seconds())
+	checkDuration(t, 0.9, 1.5, time.Since(start).Seconds())
 
 	checkInt(t, waiting, player.state.status)
 }
