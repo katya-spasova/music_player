@@ -106,8 +106,14 @@ function savePlaylist() {
 }
 
 function jumpToSong(songIndex) {
-    sendToPlayer("POST", "jump/" + songIndex);
+    sendToPlayer("POST", "jump/" + songIndex.substring(1));
     currentSong();
+}
+
+function playPlaylist(name) {
+    sendToPlayer("PUT", "play/" + name);
+    currentSong();
+    queueInfo();
 }
 
 function sendToPlayer(method, action, afterFunction, cb) {
@@ -136,13 +142,17 @@ function updateContentImpl(elementId, responseText) {
     // parse and produce html
     var res = JSON.parse(responseText);
     var content = "";
+    var isSongs = (elementId == "queue");
+    var isPlaylists = (elementId == "playlists");
+    var prefix = isSongs ? "s" : (isPlaylists ? "p" : "");
+
     if (res["Code"] > 0) {
         content = res["Message"];
-    } else if (elementId == "queue") {
-        var songs = res["Data"];
-        if (typeof songs != "undefined") {
-            for (var i = 0; i < songs.length; i++) {
-                content = content + "<div><a href='#' id='" + i + "'>" + songs[i] + "</a></div>"
+    } else if (isSongs || isPlaylists) {
+        var items = res["Data"];
+        if (typeof items != "undefined") {
+            for (var i = 0; i < items.length; i++) {
+                content = content + "<div><a href='#' id='" + prefix + i + "'>" + items[i] + "</a></div>"
             }
         }
     } else {
@@ -152,14 +162,19 @@ function updateContentImpl(elementId, responseText) {
     // update response
     document.getElementById(elementId).innerHTML = content;
 
-    // add event listeners
-    if (res["Code"] == 0 && elementId == "queue") {
-        songs = res["Data"];
-        if (typeof songs != "undefined") {
-            for (var j = 0; j < songs.length; j++) {
-                document.getElementById(j.toString()).addEventListener("click", function (event) {
+    // add event listeners to songs
+    if (res["Code"] == 0 && (isSongs || isPlaylists)) {
+        items = res["Data"];
+        if (typeof items != "undefined") {
+            for (var j = 0; j < items.length; j++) {
+                document.getElementById(prefix + j.toString()).addEventListener("click", function (event) {
                     event.preventDefault();
-                    jumpToSong(event.target.id);
+                    if (isSongs) {
+                        jumpToSong(event.target.id);
+                    }
+                    if (isPlaylists){
+                        playPlaylist(event.target.innerText)
+                    }
                 });
             }
         }
