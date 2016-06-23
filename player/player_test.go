@@ -9,6 +9,10 @@ import (
 	"time"
 )
 
+func getTestPlaylistDir() string {
+	return "test_playlists/"
+}
+
 func TestMain(m *testing.M) {
 	sox.Init()
 	code := m.Run()
@@ -19,7 +23,7 @@ func TestMain(m *testing.M) {
 func TestInit(t *testing.T) {
 	fmt.Println("TestInit")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -29,7 +33,7 @@ func TestInit(t *testing.T) {
 func TestPlaySingleFile(t *testing.T) {
 	fmt.Println("TestPlaySingleFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -79,7 +83,7 @@ func TestSupportedTypes(t *testing.T) {
 func TestPlayFile(t *testing.T) {
 	fmt.Println("TestPlayFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -124,7 +128,7 @@ func checkDuration(t *testing.T, expectedMin float64, expectedMax float64, found
 func TestPlayerPlayDir(t *testing.T) {
 	fmt.Println("TestPlayerPlayDir")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -145,7 +149,7 @@ func TestPlayerPlayDir(t *testing.T) {
 func TestPlayerPlaylist(t *testing.T) {
 	fmt.Println("TestPlayerPlaylist")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -166,7 +170,7 @@ func TestPlayerPlaylist(t *testing.T) {
 func TestPlayerPlayWrongFormat(t *testing.T) {
 	fmt.Println("TestPlayerPlayWrongFormat")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -183,7 +187,7 @@ func TestPlayerPlayWrongFormat(t *testing.T) {
 func TestPlayerPlayBrokenFile(t *testing.T) {
 	fmt.Println("TestPlayerPlayBrokenFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -200,7 +204,7 @@ func TestPlayerPlayBrokenFile(t *testing.T) {
 func TestAddPlayItemFile(t *testing.T) {
 	fmt.Println("TestAddPlayItemFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -218,7 +222,7 @@ func TestAddPlayItemFile(t *testing.T) {
 func TestAddPlayItemDir(t *testing.T) {
 	fmt.Println("TestAddPlayItemDir")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -238,7 +242,7 @@ func TestAddPlayItemDir(t *testing.T) {
 func TestAddPlayItemPlaylist(t *testing.T) {
 	fmt.Println("TestAddPlayItemPlaylist")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -258,7 +262,7 @@ func TestAddPlayItemPlaylist(t *testing.T) {
 func TestAddPlayItemWrongFormat(t *testing.T) {
 	fmt.Println("TestAddPlayItemWrongFormat")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -276,7 +280,7 @@ func TestAddPlayItemWrongFormat(t *testing.T) {
 func TestAddPlayItemNotExisting(t *testing.T) {
 	fmt.Println("TestAddPlayItemNotExisting")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -294,7 +298,7 @@ func TestAddPlayItemNotExisting(t *testing.T) {
 func TestAddRegularFile(t *testing.T) {
 	fmt.Println("TestAddRegularFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -308,12 +312,12 @@ func TestAddRegularFile(t *testing.T) {
 func TestAddRegularFilePlaylist(t *testing.T) {
 	fmt.Println("TestAddRegularFilePlaylist")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
 	defer player.waitEnd()
-	items := player.addRegularFile("playlists/sample_playlist.m3u")
+	items := player.addRegularFile("test_playlists/sample_playlist.m3u")
 	checkInt(t, 3, len(items))
 	checkInt(t, 3, len(player.state.queue))
 	checkStr(t, "test_sounds/beep9.mp3", items[0])
@@ -324,7 +328,7 @@ func TestAddRegularFilePlaylist(t *testing.T) {
 func TestAddRegularFileNotSupported(t *testing.T) {
 	fmt.Println("TestAddRegularFileNotSupported")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -337,7 +341,7 @@ func TestAddRegularFileNotSupported(t *testing.T) {
 func TestAddRegularFileNotExisting(t *testing.T) {
 	fmt.Println("TestAddRegularFileNotSupported")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -350,7 +354,7 @@ func TestAddRegularFileNotExisting(t *testing.T) {
 func TestAddFile(t *testing.T) {
 	fmt.Println("TestAddFile")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -366,7 +370,7 @@ func TestAddFile(t *testing.T) {
 func TestAddFileNotSupported(t *testing.T) {
 	fmt.Println("TestAddFileNotSupported")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -384,7 +388,7 @@ func TestAddFileNotSupported(t *testing.T) {
 func TestPlayQueueNoTrim(t *testing.T) {
 	fmt.Println("TestPlayQueueNoTrim")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -398,7 +402,7 @@ func TestPlayQueueNoTrim(t *testing.T) {
 func TestPlayQueueTrim(t *testing.T) {
 	fmt.Println("TestPlayQueueTrim")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -412,7 +416,7 @@ func TestPlayQueueTrim(t *testing.T) {
 func TestSavePlaylistNoDir(t *testing.T) {
 	fmt.Println("TestSavePlaylistNoDir")
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -433,7 +437,7 @@ func TestListPlaylistNoDir(t *testing.T) {
 	fmt.Println("TestListPlaylistNoDir")
 
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -454,7 +458,7 @@ func TestListPlaylistEmptyDir(t *testing.T) {
 	fmt.Println("TestListPlaylistEmptyDir")
 
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}
@@ -479,7 +483,7 @@ func TestPlayPauseResumePause(t *testing.T) {
 	fmt.Println("TestPlayPauseResumePause")
 
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	err := player.init()
+	err := player.init(getTestPlaylistDir())
 	if err != nil {
 		t.Fatalf(err.Error())
 	}

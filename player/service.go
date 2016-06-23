@@ -8,6 +8,7 @@ import (
 	"goji.io/pat"
 	"golang.org/x/net/context"
 	"net/http"
+	"os"
 	"strings"
 	"sync"
 )
@@ -224,10 +225,21 @@ func jump(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	playerToServiceResponse(w, []string{data}, err, started_playing_info)
 }
 
+func getPlaylistDir() string {
+	wd, err := os.Getwd()
+	playlistsDir := ""
+	if err == nil && strings.HasSuffix(wd, "music_player") {
+		playlistsDir = "player/playlists/"
+	} else {
+		playlistsDir = "playlists/"
+	}
+	return playlistsDir
+}
+
 //InitService creates a mux and initializes handle functions for music_player
-func InitService() *goji.Mux {
+func InitService(playlistDir string) *goji.Mux {
 	player = musicPlayer{playQueueMutex: &sync.Mutex{}}
-	player.init()
+	player.init(playlistDir)
 
 	// service handle functions
 	mux := goji.NewMux()
@@ -259,7 +271,7 @@ func WaitEnd() {
 // Start starts the music_player web service
 func Start() {
 	// init the player
-	mux := InitService()
+	mux := InitService(getPlaylistDir())
 	// init sox
 	if !sox.Init() {
 		fmt.Println("sox is not found")

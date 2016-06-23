@@ -126,19 +126,14 @@ const (
 )
 
 // init initialises player's state
-func (player *musicPlayer) init() error {
+func (player *musicPlayer) init(playlistDir string) error {
 	player.Lock()
 	defer player.Unlock()
 	player.state = new(state)
 	player.state.status = waiting
 	player.state.current = 0
 	player.state.queue = make([]string, 0)
-	wd, err := os.Getwd()
-	if err == nil && strings.HasSuffix(wd, "music_player") {
-		player.playlistsDir = "player/playlists/"
-	} else {
-		player.playlistsDir = "playlists/"
-	}
+	player.playlistsDir = playlistDir
 	return nil
 }
 

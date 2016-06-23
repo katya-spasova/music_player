@@ -7,8 +7,10 @@ import (
 	"testing"
 )
 
+var playlistsDir = "test_playlists"
+
 func TestGetAlive(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
@@ -71,7 +73,7 @@ func TestDisplayError(t *testing.T) {
 }
 
 func TestPerformCallPut(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
@@ -84,7 +86,7 @@ func TestPerformCallPut(t *testing.T) {
 }
 
 func TestPerformCallGet(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
@@ -97,7 +99,7 @@ func TestPerformCallGet(t *testing.T) {
 }
 
 func TestPerformCallPost(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
@@ -110,7 +112,7 @@ func TestPerformCallPost(t *testing.T) {
 }
 
 func TestPerformCallError(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
@@ -121,7 +123,7 @@ func TestPerformCallError(t *testing.T) {
 }
 
 func TestPerformAction(t *testing.T) {
-	ts := httptest.NewServer(player.InitService())
+	ts := httptest.NewServer(player.InitService(playlistsDir))
 	defer ts.Close()
 	defer player.WaitEnd()
 
