@@ -2,7 +2,7 @@
 
 ## What is music_player?
 
-music_player is a music player and a RESTful web service that provides control for the playback.
+music_player is a music player and a RESTful web service that provides control for music playback.
 
 ## How do I run music_player?
 
